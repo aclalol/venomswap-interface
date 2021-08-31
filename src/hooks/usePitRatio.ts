@@ -8,9 +8,9 @@ import useGovernanceToken from 'hooks/useGovernanceToken'
 import { useTotalSupply } from '../data/TotalSupply'
 
 export default function usePitRatio(): Fraction | undefined {
-  const govToken = useGovernanceToken()
-  const pit = usePitToken()
-  const pitTotalSupply = useTotalSupply(pit)
+  const govToken = useGovernanceToken() // Hepa
+  const pit = usePitToken() // xHepa
+  const pitTotalSupply = useTotalSupply(pit) //
   const pitGovTokenBalance = useTokenBalance(pit?.address, govToken)
   const multiplier = utils.parseEther('1').toString()
 

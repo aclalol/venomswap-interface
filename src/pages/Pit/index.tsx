@@ -2,34 +2,30 @@ import React, { useCallback, useState } from 'react'
 import { TokenAmount } from '@venomswap/sdk'
 import { AutoColumn } from '../../components/Column'
 import styled from 'styled-components'
-
-import { RouteComponentProps } from 'react-router-dom'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { TYPE } from '../../theme'
-
 import { RowBetween } from '../../components/Row'
 import { CardSection, DataCard, CardNoise, CardBGImage } from '../../components/earn/styled'
 import { ButtonPrimary } from '../../components/Button'
+import SwapModal from '../../components/Pit/SwapModal'
 import StakingModal from '../../components/Pit/StakingModal'
-import ModifiedUnstakingModal from '../../components/Pit/ModifiedUnstakingModal'
+import ModifiedUnstakingModal from '../../components/Pit/UnstakingModal'
 import ClaimModal from '../../components/Pit/ClaimModal'
 import { useTokenBalance } from '../../state/wallet/hooks'
 import { useActiveWeb3React } from '../../hooks'
 import { CountUp } from 'use-count-up'
-
 import { BlueCard } from '../../components/Card'
-
 import usePrevious from '../../hooks/usePrevious'
-
-import { PIT, PIT_SETTINGS } from '../../constants'
-import { GOVERNANCE_TOKEN_INTERFACE } from '../../constants/abis/governanceToken'
-import { PIT_INTERFACE } from '../../constants/abis/pit'
+import { PIT_SETTINGS, PIT_STAKING } from '../../constants'
+import { PIT_INTERFACE, PIT_STAKING_INTERFACE } from '../../constants/abis/pit'
 import useGovernanceToken from 'hooks/useGovernanceToken'
 import useTotalCombinedTVL from '../../hooks/useTotalCombinedTVL'
 import usePitRatio from '../../hooks/usePitRatio'
 import { useStakingInfo } from '../../state/stake/hooks'
 import useFilterStakingInfos from '../../hooks/useFilterStakingInfos'
 import CombinedTVL from '../../components/CombinedTVL'
+import usePitToken from '../../hooks/usePitToken'
+import GOVERNANCE_TOKEN_INTERFACE from '../../constants/abis/governanceToken'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -41,26 +37,11 @@ const TopSection = styled(AutoColumn)`
   width: 100%;
 `
 
-/*const PositionInfo = styled(AutoColumn)<{ dim: any }>`
-  position: relative;
-  max-width: 640px;
-  width: 100%;
-  opacity: ${({ dim }) => (dim ? 0.6 : 1)};
-`*/
-
 const BottomSection = styled(AutoColumn)`
   border-radius: 12px;
   width: 100%;
   position: relative;
 `
-
-/*const StyledDataCard = styled(DataCard)<{ bgColor?: any; showBackground?: any }>`
-  background: radial-gradient(76.02% 75.41% at 1.84% 0%, #1e1a31 0%, #3d51a5 100%);
-  z-index: 2;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  background: ${({ theme, bgColor, showBackground }) =>
-    `radial-gradient(91.85% 100% at 1.84% 0%, ${bgColor} 0%,  ${showBackground ? theme.black : theme.bg5} 100%) `};
-`*/
 
 const StyledBottomCard = styled(DataCard)<{ dim: any }>`
   background: ${({ theme }) => theme.bg3};
@@ -70,18 +51,6 @@ const StyledBottomCard = styled(DataCard)<{ dim: any }>`
   padding-top: 32px;
   z-index: 1;
 `
-
-/*const PoolData = styled(DataCard)`
-  background: none;
-  border: 1px solid ${({ theme }) => theme.bg4};
-  padding: 1rem;
-  z-index: 1;
-`*/
-
-/*const VoteCard = styled(DataCard)`
-  background: radial-gradient(76.02% 75.41% at 1.84% 0%, #27ae60 0%, #000000 100%);
-  overflow: hidden;
-`*/
 
 const CustomCard = styled(DataCard)`
   background: radial-gradient(
@@ -108,44 +77,52 @@ flex-direction: column;
 `};
 `
 
-export default function Pit({
-  match: {
-    params: { currencyIdA, currencyIdB }
-  }
-}: RouteComponentProps<{ currencyIdA: string; currencyIdB: string }>) {
+export default function Pit() {
   const { account, chainId } = useActiveWeb3React()
 
   const isActive = true
   const filteredStakingInfos = useFilterStakingInfos(useStakingInfo(isActive), isActive)
   const TVLs = useTotalCombinedTVL(filteredStakingInfos)
 
-  const govToken = useGovernanceToken()
+  const govToken = useGovernanceToken() // HEPA
+  const pitToken = usePitToken() // XHEPA contract address
+  const pitStaking = chainId ? PIT_STAKING[chainId] : undefined // Staking contract address
+  const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined // text: HepaPit
+  const govRatio = usePitRatio() // xHEPA/HEPA
   const govTokenBalance: TokenAmount | undefined = useTokenBalance(
     account ?? undefined,
     govToken,
     'balanceOf',
     GOVERNANCE_TOKEN_INTERFACE
-  )
-
-  const pit = chainId ? PIT[chainId] : undefined
-  const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined
-  const pitBalance: TokenAmount | undefined = useTokenBalance(account ?? undefined, pit, 'balanceOf', PIT_INTERFACE)
-  const govTokenPitTokenRatio = usePitRatio()
-  const adjustedPitBalance = govTokenPitTokenRatio ? pitBalance?.multiply(govTokenPitTokenRatio) : undefined
-
-  const userLiquidityStaked = pitBalance
-  const userLiquidityUnstaked = govTokenBalance
-
-  // toggle for staking modal and unstaking modal
+  ) // HEPA
+  const userLiquidityUnstaked: TokenAmount | undefined = useTokenBalance(
+    account ?? undefined,
+    pitToken,
+    'balanceOf',
+    PIT_INTERFACE
+  ) // Unstaked xHEPA
+  // const adjustedPitBalance = govTokenPitTokenRatio ? pitBalance?.multiply(govTokenPitTokenRatio) : undefined
+  const userLiquidityStaked: TokenAmount | undefined = useTokenBalance(
+    account ?? undefined,
+    pitStaking,
+    'stakedAmounts',
+    PIT_STAKING_INTERFACE
+  ) // Staked xHEPA
+  const withdrawableReward: TokenAmount | undefined = useTokenBalance(
+    account ?? undefined,
+    pitStaking,
+    'withdrawableRewardOf',
+    PIT_STAKING_INTERFACE
+  ) // Withdrawable xHEPA
+  const [showSwapModal, setShowSwapModal] = React.useState(false)
   const [showStakingModal, setShowStakingModal] = useState(false)
   const [showUnstakingModal, setShowUnstakingModal] = useState(false)
   const [showClaimModal, setShowClaimModal] = useState(false)
 
-  const countUpAmount = pitBalance?.toFixed(6) ?? '0'
+  const countUpAmount = userLiquidityUnstaked?.toFixed(6) ?? '0'
   const countUpAmountPrevious = usePrevious(countUpAmount) ?? '0'
 
   const toggleWalletModal = useWalletModalToggle()
-
   const handleDepositClick = useCallback(() => {
     if (account) {
       setShowStakingModal(true)
@@ -156,12 +133,21 @@ export default function Pit({
 
   return (
     <PageWrapper gap="lg" justify="center">
-      {govToken && (
+      {govToken && pitToken && govRatio && govTokenBalance && userLiquidityUnstaked && (
         <>
+          <SwapModal
+            isOpen={showSwapModal}
+            onDismiss={() => setShowSwapModal(false)}
+            ratio={govRatio} // Hepa * ratio = xHepa
+            hepaToken={govToken}
+            hepaTokenAmount={govTokenBalance}
+            xHepaToken={pitToken}
+            xHepaTokenAmount={userLiquidityUnstaked}
+          />
           <StakingModal
             isOpen={showStakingModal}
             onDismiss={() => setShowStakingModal(false)}
-            stakingToken={govToken}
+            stakingToken={pitToken}
             userLiquidityUnstaked={userLiquidityUnstaked}
           />
           <ModifiedUnstakingModal
@@ -170,7 +156,12 @@ export default function Pit({
             userLiquidityStaked={userLiquidityStaked}
             stakingToken={govToken}
           />
-          <ClaimModal isOpen={showClaimModal} onDismiss={() => setShowClaimModal(false)} />
+          <ClaimModal
+            isOpen={showClaimModal}
+            onDismiss={() => setShowClaimModal(false)}
+            withdrawableReward={withdrawableReward}
+            stakingToken={pitToken}
+          />
         </>
       )}
 
@@ -181,7 +172,7 @@ export default function Pit({
             {TVLs?.stakingPoolTVL?.greaterThan('0') && (
               <TYPE.black>
                 <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                  🏆
+                  🏆 TODO
                 </span>
                 <CombinedTVL />
               </TYPE.black>
@@ -200,7 +191,7 @@ export default function Pit({
                 </RowBetween>
                 <RowBetween style={{ alignItems: 'baseline' }}>
                   <TYPE.white fontSize={14}>
-                    Stake your {govToken?.symbol} tokens and earn 1/3rd of the generated trading fees.
+                    Stake your {pitToken?.symbol} tokens and earn 1/3rd of the generated trading fees.
                   </TYPE.white>
                 </RowBetween>
                 <br />
@@ -215,9 +206,9 @@ export default function Pit({
                 <div>
                   <TYPE.black>
                     Your x{govToken?.symbol} Balance
-                    {govTokenPitTokenRatio && (
+                    {govRatio && (
                       <TYPE.italic display="inline" marginLeft="0.25em">
-                        (1 x{govToken?.symbol} = {govTokenPitTokenRatio.toSignificant(4)} {govToken?.symbol})
+                        (1 x{govToken?.symbol} = {govRatio.toSignificant(4)} {govToken?.symbol})
                       </TYPE.italic>
                     )}
                   </TYPE.black>
@@ -240,32 +231,36 @@ export default function Pit({
           </StyledBottomCard>
         </BottomSection>
 
-        {account && adjustedPitBalance && adjustedPitBalance?.greaterThan('0') && (
+        {account && userLiquidityStaked && userLiquidityStaked?.greaterThan('0') && (
           <TYPE.main>
-            You have {adjustedPitBalance?.toFixed(2, { groupSeparator: ',' })} {govToken?.symbol} tokens staked in
+            You have {userLiquidityStaked?.toFixed(2, { groupSeparator: ',' })} {pitToken?.symbol} tokens staked in
             the&nbsp;{pitSettings?.name}.
           </TYPE.main>
         )}
 
-        {account && (!adjustedPitBalance || adjustedPitBalance?.equalTo('0')) && (
+        {account && (!userLiquidityStaked || userLiquidityStaked?.equalTo('0')) && (
           <TYPE.main>
-            You have {govTokenBalance?.toFixed(2, { groupSeparator: ',' })} {govToken?.symbol} tokens available to
+            You have {userLiquidityUnstaked?.toFixed(2, { groupSeparator: ',' })} {pitToken?.symbol} tokens available to
             deposit to the {pitSettings?.name}.
           </TYPE.main>
         )}
 
         {account && (
           <DataRow style={{ marginBottom: '0rem' }}>
+            <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowSwapModal(true)}>
+              Swap
+            </ButtonPrimary>
+
             <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={handleDepositClick}>
               Deposit
             </ButtonPrimary>
 
-            <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowClaimModal(true)}>
-              Claim
-            </ButtonPrimary>
-
             <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowUnstakingModal(true)}>
               Withdraw
+            </ButtonPrimary>
+
+            <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowClaimModal(true)}>
+              Claim
             </ButtonPrimary>
           </DataRow>
         )}
@@ -276,7 +271,7 @@ export default function Pit({
               <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px' }}>
                 💡
               </span>
-              <b>Important:</b> Your {govToken?.symbol} rewards will only be visible
+              <b>Important:</b> Your {pitToken?.symbol} rewards will only be visible
               <br />
               after you withdraw your x{govToken?.symbol} tokens from the pool.
               <br />

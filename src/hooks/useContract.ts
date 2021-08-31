@@ -2,13 +2,20 @@ import { Contract } from '@ethersproject/contracts'
 import { abi as GOVERNANCE_ABI } from '@uniswap/governance/build/GovernorAlpha.json'
 import { abi as UNI_ABI } from '@uniswap/governance/build/Uni.json'
 import { abi as STAKING_REWARDS_ABI } from '@uniswap/liquidity-staker/build/StakingRewards.json'
-import { abi as PIT_ABI } from '@venomswap/contracts/build/Pit.json'
+import PIT_ABI from '../constants/abis/pit.json'
 import { abi as PIT_BREEDER_ABI } from '@venomswap/contracts/build/PitBreeder.json'
 import { abi as MERKLE_DISTRIBUTOR_ABI } from '@uniswap/merkle-distributor/build/MerkleDistributor.json'
 import { ChainId, WETH } from '@venomswap/sdk'
 import { abi as IUniswapV2PairABI } from '@venomswap/core/build/IUniswapV2Pair.json'
 import { useMemo } from 'react'
-import { GOVERNANCE_ADDRESS, MERKLE_DISTRIBUTOR_ADDRESS, MASTER_BREEDER, PIT, PIT_BREEDER } from '../constants'
+import {
+  GOVERNANCE_ADDRESS,
+  MERKLE_DISTRIBUTOR_ADDRESS,
+  MASTER_BREEDER,
+  PIT,
+  PIT_BREEDER,
+  PIT_STAKING
+} from '../constants'
 import { abi as MASTER_BREEDER_ABI } from '../constants/abis/MasterHepa.json'
 import { abi as GOVERNANCE_TOKEN_ABI } from '../constants/abis/HepaToken.json'
 import {
@@ -27,6 +34,7 @@ import { V1_EXCHANGE_ABI, V1_FACTORY_ABI, V1_FACTORY_ADDRESSES } from '../consta
 import { getContract } from '../utils'
 import { useActiveWeb3React } from './index'
 import useGovernanceToken from './useGovernanceToken'
+import { PIT_STAKING_ABI } from '../constants/abis/pit'
 
 // returns null on errors
 function useContract(address: string | undefined, ABI: any, withSignerIfPossible = true): Contract | null {
@@ -126,7 +134,14 @@ export function useGovTokenContract(): Contract | null {
 
 export function usePitContract(withSignerIfPossible?: boolean): Contract | null {
   const { chainId } = useActiveWeb3React()
-  return useContract(chainId ? PIT[chainId].address : undefined, PIT_ABI, withSignerIfPossible)
+  const address = chainId ? PIT[chainId].address : undefined
+  return useContract(address, PIT_ABI, withSignerIfPossible)
+}
+
+export function usePitStakingContract(withSignerIfPossible?: boolean): Contract | null {
+  const { chainId } = useActiveWeb3React()
+  const address = chainId ? PIT_STAKING[chainId].address : undefined
+  return useContract(address, PIT_STAKING_ABI, withSignerIfPossible)
 }
 
 export function usePitBreederContract(withSignerIfPossible?: boolean): Contract | null {

@@ -1,27 +1,18 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import Modal from '../Modal'
 import { AutoColumn } from '../Column'
 import styled from 'styled-components'
 import { RowBetween } from '../Row'
 import { TYPE, CloseIcon } from '../../theme'
 import { ButtonError } from '../Button'
-import { usePitBreederContract } from '../../hooks/useContract'
+import { usePitStakingContract } from '../../hooks/useContract'
 import { SubmittedView, LoadingView } from '../ModalViews'
 import { TransactionResponse } from '@ethersproject/providers'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { useActiveWeb3React } from '../../hooks'
-import { calculateGasMargin } from '../../utils'
-import { abi as IUniswapV2PairABI } from '@venomswap/core/build/IUniswapV2Pair.json'
-import { Interface } from '@ethersproject/abi'
-import { useMultipleContractSingleData } from '../../state/multicall/hooks'
-import { toV2LiquidityToken } from '../../state/user/hooks'
 import { PIT_SETTINGS } from '../../constants'
-import useGovernanceToken from '../../hooks/useGovernanceToken'
-import useBlockchain from '../../hooks/useBlockchain'
-import { PIT_POOLS } from '../../constants/pit'
-import useEligiblePitPools from '../../hooks/useEligiblePitPools'
-
-const PAIR_INTERFACE = new Interface(IUniswapV2PairABI)
+import { JSBI, Token, TokenAmount } from '@venomswap/sdk'
+import { GAS_LIMIT } from '../../constants/pit'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -30,13 +21,14 @@ const ContentWrapper = styled(AutoColumn)`
 interface ClaimModalProps {
   isOpen: boolean
   onDismiss: () => void
+  withdrawableReward: TokenAmount | undefined
+  stakingToken: Token
 }
 
-export default function ClaimModal({ isOpen, onDismiss }: ClaimModalProps) {
+export default function ClaimModal({ isOpen, onDismiss, withdrawableReward, stakingToken }: ClaimModalProps) {
   const { account, chainId } = useActiveWeb3React()
 
-  const blockchain = useBlockchain()
-  const govToken = useGovernanceToken()
+  // const blockchain = useBlockchain()
   const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined
 
   // monitor call to help UI loading state
@@ -52,37 +44,17 @@ export default function ClaimModal({ isOpen, onDismiss }: ClaimModalProps) {
     onDismiss()
   }
 
-  const pitBreeder = usePitBreederContract()
-  const stakingPools = useMemo(() => (chainId ? PIT_POOLS[chainId] : []), [chainId])
-
-  const liquidityTokenAddresses = useMemo(
-    () =>
-      stakingPools
-        ? stakingPools.map(item => {
-            return blockchain && chainId && item ? toV2LiquidityToken(item.tokens)?.address : undefined
-          })
-        : [],
-    [blockchain, chainId, stakingPools]
-  ).filter(address => address !== undefined)
-
-  const balanceResults = useMultipleContractSingleData(liquidityTokenAddresses, PAIR_INTERFACE, 'balanceOf', [
-    pitBreeder?.address
-  ])
-
-  const [claimFrom, claimTo] = useEligiblePitPools(stakingPools, balanceResults)
-
-  const rewardsAreClaimable = claimFrom.length > 0 && claimTo.length > 0
-
+  const rewardsAreClaimable = withdrawableReward ? JSBI.GT(JSBI.BigInt(withdrawableReward.raw), 0) : false
+  const pitStaking = usePitStakingContract()
   async function onClaimRewards() {
-    if (pitBreeder) {
+    if (pitStaking) {
       setAttempting(true)
 
       try {
-        const estimatedGas = await pitBreeder.estimateGas.convertMultiple(claimFrom, claimTo)
-
-        await pitBreeder
-          .convertMultiple(claimFrom, claimTo, {
-            gasLimit: calculateGasMargin(estimatedGas)
+        // const estimatedGas = await pitStaking.estimateGas.convertMultiple()
+        await pitStaking
+          .withdrawReward({
+            gasLimit: GAS_LIMIT // calculateGasMargin(estimatedGas)
           })
           .then((response: TransactionResponse) => {
             addTransaction(response, {
@@ -120,17 +92,19 @@ export default function ClaimModal({ isOpen, onDismiss }: ClaimModalProps) {
           </RowBetween>
           <TYPE.body fontSize={32} style={{ textAlign: 'center' }}>
             <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px' }}>
-              💎
+              💎{' '}
+              {rewardsAreClaimable &&
+                `${withdrawableReward?.toFixed(2, { groupSeparator: '' })} ${stakingToken?.symbol}`}
             </span>
           </TYPE.body>
           {rewardsAreClaimable && (
             <>
               <TYPE.body fontSize={14} style={{ textAlign: 'center' }}>
-                When you claim rewards, collected LP fees will be used to market buy {govToken?.symbol}.
+                When you claim rewards, collected LP fees will be used to market buy {stakingToken?.symbol}.
                 <br />
                 <br />
-                The purchased {govToken?.symbol} tokens will then be distributed to the {pitSettings?.name} stakers as a
-                reward.
+                The purchased {stakingToken?.symbol} tokens will then be distributed to the {pitSettings?.name} stakers
+                as a reward.
               </TYPE.body>
               <ButtonError disabled={!!error} error={!!error} onClick={onClaimRewards}>
                 {error ?? 'Claim'}
@@ -160,7 +134,7 @@ export default function ClaimModal({ isOpen, onDismiss }: ClaimModalProps) {
         <SubmittedView onDismiss={wrappedOnDismiss} hash={hash}>
           <AutoColumn gap="12px" justify={'center'}>
             <TYPE.largeHeader>Transaction Submitted</TYPE.largeHeader>
-            <TYPE.body fontSize={20}>Claimed {govToken?.symbol}!</TYPE.body>
+            <TYPE.body fontSize={20}>Claimed {stakingToken?.symbol}!</TYPE.body>
           </AutoColumn>
         </SubmittedView>
       )}

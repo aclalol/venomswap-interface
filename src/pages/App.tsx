@@ -5,7 +5,6 @@ import GoogleAnalyticsReporter from '../components/analytics/GoogleAnalyticsRepo
 import AddressClaimModal from '../components/claim/AddressClaimModal'
 import Header from '../components/Header'
 import Polling from '../components/Header/Polling'
-//import URLWarning from '../components/Header/URLWarning'
 import Popups from '../components/Popups'
 import Web3ReactManager from '../components/Web3ReactManager'
 import { ApplicationModal } from '../state/application/actions'
@@ -17,6 +16,8 @@ import Swap from './Swap'
 import { RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
 import usePlatformName from '../hooks/usePlatformName'
 import Manage from './Earn/Manage'
+import HepaNest from './Nest'
+import Pit from './Pit'
 
 const AppWrapper = styled.div`
   display: flex;
@@ -86,6 +87,8 @@ export default function App() {
               <Route exact strict path="/staking" component={Earn} />
               <Route exact strict path="/staking/archived" component={EarnArchived} />
               <Route exact strict path="/staking/:currencyIdA/:currencyIdB" component={Manage} />
+              <Route exact strict path="/hepa/nest" component={HepaNest} />
+              <Route exact strict path="/hepa/pit" component={Pit} />
               <Route component={RedirectPathToSwapOnly} />
             </Switch>
           </Web3ReactManager>

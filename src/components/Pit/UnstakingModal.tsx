@@ -9,25 +9,16 @@ import CurrencyInputPanel from '../CurrencyInputPanel'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { TokenAmount, Token } from '@venomswap/sdk'
 import { useDerivedUnstakeInfo } from '../../state/stake/hooks'
-//import { wrappedCurrencyAmount } from '../../utils/wrappedCurrency'
 import { TransactionResponse } from '@ethersproject/providers'
 import { useActiveWeb3React } from '../../hooks'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { LoadingView, SubmittedView } from '../ModalViews'
-import { usePitContract } from '../../hooks/useContract'
-import { calculateGasMargin } from '../../utils'
+import { usePitStakingContract } from '../../hooks/useContract'
+//import { calculateGasMargin } from '../../utils'
 import { PIT_SETTINGS } from '../../constants'
 import useGovernanceToken from '../../hooks/useGovernanceToken'
 import usePitToken from '../../hooks/usePitToken'
-
-/*const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
-  display: flex;
-  justify-content: space-between;
-  padding-right: 20px;
-  padding-left: 20px;
-
-  opacity: ${({ dim }) => (dim ? 0.5 : 1)};
-`*/
+import { GAS_LIMIT } from '../../constants/pit'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -41,12 +32,7 @@ interface StakingModalProps {
   userLiquidityStaked: TokenAmount | undefined
 }
 
-export default function ModifiedStakingModal({
-  isOpen,
-  onDismiss,
-  stakingToken,
-  userLiquidityStaked
-}: StakingModalProps) {
+export default function UnstakingModal({ isOpen, onDismiss, stakingToken, userLiquidityStaked }: StakingModalProps) {
   const { chainId } = useActiveWeb3React()
 
   // track and parse user input
@@ -67,7 +53,7 @@ export default function ModifiedStakingModal({
 
   const govToken = useGovernanceToken()
   const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined
-  const pit = usePitContract()
+  const pit = usePitStakingContract() // usePitContract()
   const pitToken = usePitToken()
 
   async function onWithdraw() {
@@ -75,11 +61,11 @@ export default function ModifiedStakingModal({
       setAttempting(true)
 
       const formattedAmount = `0x${parsedAmount?.raw.toString(16)}`
-      const estimatedGas = await pit.estimateGas.leave(formattedAmount)
+      // const estimatedGas = await pit.estimateGas.leave(formattedAmount)
 
       await pit
-        .leave(formattedAmount, {
-          gasLimit: calculateGasMargin(estimatedGas)
+        .unstake(formattedAmount, {
+          gasLimit: GAS_LIMIT // TODO calculateGasMargin(estimatedGas)
         })
         .then((response: TransactionResponse) => {
           addTransaction(response, {
@@ -130,7 +116,6 @@ export default function ModifiedStakingModal({
             customBalanceText={'Available to withdraw: '}
             id="stake-liquidity-token"
           />
-
           <RowBetween>
             <ButtonError disabled={!!error} error={!!error && !!parsedAmount} onClick={onWithdraw}>
               {error ?? 'Withdraw'}

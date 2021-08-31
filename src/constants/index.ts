@@ -46,7 +46,7 @@ export const GOVERNANCE_TOKEN: { [chainId in ChainId]: Token } = {
   [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, ZERO_ONE_ADDRESS, 18, 'VIPER', 'Viper'),
   [ChainId.ROPSTEN]: new Token(ChainId.ROPSTEN, ZERO_ONE_ADDRESS, 18, 'VIPER', 'Viper'),
   [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'VIPER', 'Viper'),
-  [ChainId.KOVAN]: new Token(ChainId.KOVAN, ZERO_ONE_ADDRESS, 18, 'VIPER', 'Viper'),
+  [ChainId.KOVAN]: new Token(ChainId.KOVAN, '0x7BB7cE989BCC4d288b38255A169291EbfA5DEf9a', 18, 'HEPA', 'Hepa'),
   [ChainId.BSC_MAINNET]: new Token(
     ChainId.BSC_MAINNET,
     '0x9159F30F1c3F0317b0a2D6bC176f29266Be790eE',
@@ -100,47 +100,41 @@ export const PIT_BREEDER: { [chainId in ChainId]: string } = {
   [ChainId.HARMONY_MAINNET]: '0x08913d353091e24B361f0E519e2f7aD07a78995d',
   [ChainId.HARMONY_TESTNET]: '0x3945509547b74370468238F715e2dcf698a088B4'
 }
-
+// XHEPA 0x0684dad6ee76cfc2cff3861f9d35798758561913
 export const PIT: { [chainId in ChainId]: Token } = {
-  [ChainId.MAINNET]: new Token(ChainId.MAINNET, ZERO_ONE_ADDRESS, 18, 'xVIPER', 'ViperPit'),
-  [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, ZERO_ONE_ADDRESS, 18, 'xVIPER', 'ViperPit'),
-  [ChainId.ROPSTEN]: new Token(ChainId.ROPSTEN, ZERO_ONE_ADDRESS, 18, 'xVIPER', 'ViperPit'),
-  [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'xVIPER', 'ViperPit'),
-  [ChainId.KOVAN]: new Token(ChainId.KOVAN, ZERO_ONE_ADDRESS, 18, 'xVIPER', 'ViperPit'),
-  [ChainId.BSC_MAINNET]: new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'xCOBRA', 'CobraDen'),
-  [ChainId.BSC_TESTNET]: new Token(
-    ChainId.BSC_TESTNET,
-    '0x6F08B9914A4BDce7a2220D9f72BC2728Bc083A18',
-    18,
-    'xCOBRA',
-    'CobraDen'
-  ),
-  [ChainId.HARMONY_MAINNET]: new Token(
-    ChainId.HARMONY_MAINNET,
-    '0xE064a68994e9380250CfEE3E8C0e2AC5C0924548',
-    18,
-    'xVIPER',
-    'ViperPit'
-  ),
-  [ChainId.HARMONY_TESTNET]: new Token(
-    ChainId.HARMONY_TESTNET,
-    '0x1e11CA9830Cd3a9867990CE2769EDf77F21ae5FA',
-    18,
-    'xVIPER',
-    'ViperPit'
-  )
+  [ChainId.MAINNET]: new Token(ChainId.MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.ROPSTEN]: new Token(ChainId.ROPSTEN, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.KOVAN]: new Token(ChainId.KOVAN, '0x0684DAd6eE76cFc2CFF3861f9D35798758561913', 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_MAINNET]: new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.HARMONY_MAINNET]: new Token(ChainId.HARMONY_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit')
+}
+// Staking 0x7AAB1C2577e093801f714fBEBD6EC6538a9c3Bf7
+export const PIT_STAKING: { [chainId in ChainId]: Token } = {
+  [ChainId.MAINNET]: new Token(ChainId.MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.ROPSTEN]: new Token(ChainId.ROPSTEN, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.KOVAN]: new Token(ChainId.KOVAN, '0x7AAB1C2577e093801f714fBEBD6EC6538a9c3Bf7', 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_MAINNET]: new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.HARMONY_MAINNET]: new Token(ChainId.HARMONY_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit')
 }
 
 export const PIT_SETTINGS: { [chainId in ChainId]: Record<string, string> } = {
-  [ChainId.MAINNET]: { name: '', path: '' },
-  [ChainId.RINKEBY]: { name: '', path: '' },
-  [ChainId.ROPSTEN]: { name: '', path: '' },
-  [ChainId.GÖRLI]: { name: '', path: '' },
-  [ChainId.KOVAN]: { name: '', path: '' },
-  [ChainId.BSC_MAINNET]: { name: 'CobraDen', path: '/cobraDen' },
-  [ChainId.BSC_TESTNET]: { name: 'CobraDen', path: '/cobraDen' },
-  [ChainId.HARMONY_MAINNET]: { name: 'ViperPit', path: '/viperPit' },
-  [ChainId.HARMONY_TESTNET]: { name: 'ViperPit', path: '/viperPit' }
+  [ChainId.MAINNET]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.RINKEBY]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.ROPSTEN]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.GÖRLI]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.KOVAN]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.BSC_MAINNET]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.BSC_TESTNET]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.HARMONY_MAINNET]: { name: 'HepaPit', path: '/hepaPit' },
+  [ChainId.HARMONY_TESTNET]: { name: 'HepaPit', path: '/hepaPit' }
 }
 
 export const WEB_INTERFACES: { [chainId in ChainId]: string[] } = {

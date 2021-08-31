@@ -13,23 +13,14 @@ import { useActiveWeb3React } from '../../hooks'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { useApproveCallback, ApprovalState } from '../../hooks/useApproveCallback'
 import { useDerivedStakeInfo } from '../../state/stake/hooks'
-//import { wrappedCurrencyAmount } from '../../utils/wrappedCurrency'
 import { TransactionResponse } from '@ethersproject/providers'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { LoadingView, SubmittedView } from '../ModalViews'
-import { usePitContract } from '../../hooks/useContract'
-import { calculateGasMargin } from '../../utils'
+import { usePitStakingContract } from '../../hooks/useContract'
 import { PIT_SETTINGS } from '../../constants'
-import useGovernanceToken from '../../hooks/useGovernanceToken'
-
-/*const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
-  display: flex;
-  justify-content: space-between;
-  padding-right: 20px;
-  padding-left: 20px;
-
-  opacity: ${({ dim }) => (dim ? 0.5 : 1)};
-`*/
+import usePitToken from '../../hooks/usePitToken'
+import { GAS_LIMIT } from '../../constants/pit'
+// import { calculateGasMargin } from '../../utils'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -50,7 +41,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingToken, userLiqu
   const [typedValue, setTypedValue] = useState('')
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, stakingToken, userLiquidityUnstaked)
 
-  const govToken = useGovernanceToken()
+  const govToken = usePitToken()
   const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined
 
   // state for pending and submitted txn views
@@ -65,22 +56,21 @@ export default function StakingModal({ isOpen, onDismiss, stakingToken, userLiqu
     onDismiss()
   }, [onDismiss])
 
-  const pit = usePitContract()
+  const pitStakingContract = usePitStakingContract()
 
   // approval data for stake
   const deadline = useTransactionDeadline()
-  const [approval, approveCallback] = useApproveCallback(parsedAmount, pit?.address)
+  const [approval, approveCallback] = useApproveCallback(parsedAmount, pitStakingContract?.address)
 
   async function onStake() {
     setAttempting(true)
-    if (pit && parsedAmount && deadline) {
+    if (pitStakingContract && parsedAmount && deadline) {
       if (approval === ApprovalState.APPROVED) {
         const formattedAmount = `0x${parsedAmount.raw.toString(16)}`
-        const estimatedGas = await pit.estimateGas.enter(formattedAmount)
 
-        await pit
-          .enter(formattedAmount, {
-            gasLimit: calculateGasMargin(estimatedGas)
+        await pitStakingContract
+          .stake(formattedAmount, {
+            gasLimit: GAS_LIMIT // TODO calculateGasMargin(estimatedGas)
           })
           .then((response: TransactionResponse) => {
             addTransaction(response, {
@@ -115,7 +105,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingToken, userLiqu
   }, [maxAmountInput, onUserInput])
 
   async function onAttemptToApprove() {
-    if (!pit || !library || !deadline) throw new Error('missing dependencies')
+    if (!pitStakingContract || !library || !deadline) throw new Error('missing dependencies')
     const liquidityAmount = parsedAmount
     if (!liquidityAmount) throw new Error('missing liquidity amount')
 
