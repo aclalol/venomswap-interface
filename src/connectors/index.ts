@@ -36,7 +36,7 @@ let networkLibrary: Web3Provider | undefined
 export function getNetworkLibrary(): Web3Provider {
   return (networkLibrary = networkLibrary ?? new Web3Provider(network.provider as any))
 }
-
+console.log('block chain: ', Blockchain)
 let supportedChainIds: number[]
 switch (BLOCKCHAIN) {
   case Blockchain.BINANCE_SMART_CHAIN:

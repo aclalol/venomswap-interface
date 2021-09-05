@@ -14,9 +14,12 @@ import {
   MASTER_BREEDER,
   PIT,
   PIT_BREEDER,
-  PIT_STAKING
+  PIT_STAKING,
+  MASTER_NEST
 } from '../constants'
 import { abi as MASTER_BREEDER_ABI } from '../constants/abis/MasterHepa.json'
+import MASTER_NEST_ABI from '../constants/abis/nest.json'
+import NEST_POOL_ABI from '../constants/abis/nest-pool.json'
 import { abi as GOVERNANCE_TOKEN_ABI } from '../constants/abis/HepaToken.json'
 import {
   ARGENT_WALLET_DETECTOR_ABI,
@@ -157,6 +160,16 @@ export function useMasterBreederContract(withSignerIfPossible?: boolean): Contra
   const { chainId } = useActiveWeb3React()
   const address = chainId && MASTER_BREEDER[chainId]
   return useContract(address, MASTER_BREEDER_ABI, withSignerIfPossible)
+}
+
+export function useMasterNestContract(withSignerIfPossible?: boolean): Contract | null {
+  const { chainId } = useActiveWeb3React()
+  const address = chainId && MASTER_NEST[chainId]
+  return useContract(address, MASTER_NEST_ABI, withSignerIfPossible)
+}
+
+export function useNestPoolContract(address?: string, withSignerIfPossible?: boolean): Contract | null {
+  return useContract(address, NEST_POOL_ABI, withSignerIfPossible)
 }
 
 export function useSocksController(): Contract | null {

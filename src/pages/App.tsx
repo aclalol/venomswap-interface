@@ -16,7 +16,9 @@ import Swap from './Swap'
 import { RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
 import usePlatformName from '../hooks/usePlatformName'
 import Manage from './Earn/Manage'
-import HepaNest from './Nest'
+import Nest from './Nest'
+import NestArchived from './Nest/Archived'
+import NestManage from './Nest/Manage'
 import Pit from './Pit'
 
 const AppWrapper = styled.div`
@@ -87,7 +89,9 @@ export default function App() {
               <Route exact strict path="/staking" component={Earn} />
               <Route exact strict path="/staking/archived" component={EarnArchived} />
               <Route exact strict path="/staking/:currencyIdA/:currencyIdB" component={Manage} />
-              <Route exact strict path="/hepa/nest" component={HepaNest} />
+              <Route exact strict path="/hepa/nest" component={Nest} />
+              <Route exact strict path="/hepa/nest/archived" component={NestArchived} />
+              <Route exact strict path="/hepa/nest/:address" component={NestManage} />
               <Route exact strict path="/hepa/pit" component={Pit} />
               <Route component={RedirectPathToSwapOnly} />
             </Switch>

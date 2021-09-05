@@ -364,11 +364,11 @@ export default function Header() {
             Staking
           </StyledNavLink>
           <StyledNavLink id={`hepa-pit-nav-link`} to={'/hepa/pit'}>
-            Hepa Pit
+            HepaPit
           </StyledNavLink>
-          {/*<StyledNavLink id={`hepa-nest-nav-link`} to={'/hepa/nest'}>
-            Hepa Nest
-          </StyledNavLink>*/}
+          <StyledNavLink id={`hepa-nest-nav-link`} to={'/hepa/nest'}>
+            HepaNest
+          </StyledNavLink>
         </HeaderLinks>
       </HeaderRow>
       <HeaderControls>
