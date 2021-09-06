@@ -120,7 +120,7 @@ export const PIT: { [chainId in ChainId]: Token } = {
   [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.KOVAN]: new Token(ChainId.KOVAN, '0x0684DAd6eE76cFc2CFF3861f9D35798758561913', 18, 'xHEPA', 'HepaPit'),
   [ChainId.BSC_MAINNET]: new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
-  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, '0x4C36C2b8a5F4Edbb8FD65E60FD51dC499a133d3a', 18, 'xHEPA', 'HepaPit'),
   [ChainId.HARMONY_MAINNET]: new Token(ChainId.HARMONY_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit')
 }
@@ -132,7 +132,7 @@ export const PIT_STAKING: { [chainId in ChainId]: Token } = {
   [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.KOVAN]: new Token(ChainId.KOVAN, '0x7AAB1C2577e093801f714fBEBD6EC6538a9c3Bf7', 18, 'xHEPA', 'HepaPit'),
   [ChainId.BSC_MAINNET]: new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
-  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, '0x6F3215FEB6234eC21EaA763A91E9874Ba0C11dfA', 18, 'xHEPA', 'HepaPit'),
   [ChainId.HARMONY_MAINNET]: new Token(ChainId.HARMONY_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit')
 }
