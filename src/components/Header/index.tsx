@@ -366,7 +366,7 @@ export default function Header() {
           <StyledNavLink id={`hepa-pit-nav-link`} to={'/hepa/pit'}>
             HepaPit
           </StyledNavLink>
-          <StyledNavLink id={`hepa-nest-nav-link`} to={'/hepa/nest'}>
+          <StyledNavLink id={`hepa-nest-nav-link`} to={'/hepa/nest/active'}>
             HepaNest
           </StyledNavLink>
         </HeaderLinks>

@@ -57,7 +57,7 @@ flex-direction: column;
 `};
 `
 
-export default function EarnArchived() {
+export default function NestArchived() {
   const { chainId, account } = useActiveWeb3React()
   const govToken = useGovernanceToken()
   const blockchainSettings = chainId ? BLOCKCHAIN_SETTINGS[chainId] : undefined

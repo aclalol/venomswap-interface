@@ -1,21 +1,16 @@
 import React from 'react'
 import { AutoColumn } from '../../components/Column'
 import styled from 'styled-components'
-// import { STAKING_REWARDS_INFO } from '../../constants/staking'
-import { useNestPoolsList } from '../../state/nest/hooks'
+import { PoolInterface, useNestPoolsAddrsList } from '../../state/nest/hooks'
 import { TYPE, StyledInternalLink } from '../../theme'
 import PoolCard from '../../components/nest/PoolCard'
 import { CustomButtonWhite } from '../../components/Button'
 import { RowBetween } from '../../components/Row'
 import { CardSection, ExtraDataCard, CardNoise, CardBGImage } from '../../components/nest/styled'
-// import Loader from '../../components/Loader'
-// import { useActiveWeb3React } from '../../hooks'
-// import useTotalCombinedTVL from '../../hooks/useTotalCombinedTVL'
-// import { OutlineCard } from '../../components/Card'
-// import CombinedTVL from '../../components/CombinedTVL'
-// TODO staking
-// import useCalculateStakingInfoMembers from '../../hooks/useCalculateStakingInfoMembers'
-// import useFilterStakingInfos from '../../hooks/useFilterStakingInfos'
+import { OutlineCard } from '../../components/Card'
+import { ZERO_ADDRESS } from '../../constants'
+import { useParams } from 'react-router-dom'
+import { useActiveWeb3React } from '../../hooks'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -40,24 +35,49 @@ const DataRow = styled(RowBetween)`
 `
 
 export default function Nest() {
-  // const {
-  //   chainId,
-  //   account
-  // } = useActiveWeb3React()
-  const activePoolsOnly = true
-  const { poolsAddrs } = useNestPoolsList(activePoolsOnly)
-  console.log('Nest Pools List: ', poolsAddrs)
+  const { account } = useActiveWeb3React()
+  const poolsAddrs = useNestPoolsAddrsList()
+  const { type } = useParams()
+  const isArchived = React.useMemo(() => type === 'archive', [type])
+  const [archivedPools, setArchivedPools] = React.useState<any>({})
+  const [activePools, setActivePools] = React.useState<any>({})
+  const { shownArr, shownObj, handleSetPoolType } = React.useMemo(() => {
+    const archivedPoolsArr = Object.keys(archivedPools)
+    const activePoolsArr = Object.keys(activePools)
+    const poolsAddrsObj = poolsAddrs.reduce((acc, addr) => {
+      return {
+        ...acc,
+        [addr]: undefined
+      }
+    }, {})
 
-  // const stakingRewardsExist = Boolean(typeof chainId === 'number' && (STAKING_REWARDS_INFO[chainId]?.length ?? 0)
-  // > 0)
+    const handleSetPoolType = (addr: string, isActive: boolean, pool: PoolInterface) => {
+      if (addr === ZERO_ADDRESS) return
 
-  // const activeStakingInfos = useFilterStakingInfos(stakingInfos, activePoolsOnly)
-  // const inactiveStakingInfos = useFilterStakingInfos(stakingInfos, false)
-  // const stakingInfoStats = useCalculateStakingInfoMembers(chainId)
-  // const hasArchivedStakingPools =
-  //   (stakingInfoStats?.inactive && stakingInfoStats?.inactive > 0) || inactiveStakingInfos?.length > 0
+      if (!isActive && !archivedPools[addr]) setArchivedPools({ ...archivedPools, [addr]: pool })
+      if (isActive && !activePools[addr]) setActivePools({ ...activePools, [addr]: pool })
+    }
 
-  // const TVLs = useTotalCombinedTVL(activeStakingInfos)
+    if (archivedPoolsArr.length + activePoolsArr.length < poolsAddrs.length)
+      return { shownArr: poolsAddrs, shownObj: poolsAddrsObj, handleSetPoolType }
+
+    return isArchived
+      ? { shownArr: archivedPoolsArr, shownObj: archivedPools, handleSetPoolType }
+      : { shownArr: activePoolsArr, shownObj: activePools, handleSetPoolType }
+  }, [poolsAddrs, isArchived, archivedPools, activePools, setActivePools, setArchivedPools])
+  const assets = React.useMemo(() => {
+    const activePoolsCount = Object.keys(activePools).length
+    const archivedPoolsCount = Object.keys(archivedPools).length
+
+    return {
+      isShow: isArchived ? activePoolsCount !== 0 : archivedPoolsCount !== 0,
+      to: isArchived ? '/hepa/nest/active' : '/hepa/nest/archive',
+      text: isArchived
+        ? `Active Pools ${activePoolsCount ? `(${activePoolsCount})` : ''}`
+        : `Archived Pools ${archivedPoolsCount ? `(${archivedPoolsCount})` : ''}`,
+      emptyText: isArchived ? 'No archived pool' : 'No active pool'
+    }
+  }, [isArchived, activePools, archivedPools])
 
   return (
     <PageWrapper gap="lg" justify="center">
@@ -73,11 +93,11 @@ export default function Nest() {
               <RowBetween>
                 <TYPE.white fontSize={14}>Deposit tokens to receive rewards</TYPE.white>
               </RowBetween>{' '}
-              {true && (
+              {account && (
                 <RowBetween>
-                  <StyledInternalLink to={`/hepa/nest/archived`}>
+                  <StyledInternalLink to={assets.to}>
                     <CustomButtonWhite padding="8px" borderRadius="8px">
-                      Archived Pools
+                      {assets.text}
                     </CustomButtonWhite>
                   </StyledInternalLink>
                 </RowBetween>
@@ -103,25 +123,22 @@ export default function Nest() {
         </DataRow>
 
         <PoolSection>
-          {poolsAddrs.map((addr: string) => (
-            <PoolCard key={addr} address={addr} />
-          ))}
-        </PoolSection>
-        {/*<PoolSection>
-          {account && stakingRewardsExist && stakingInfos?.length === 0 ? (
-            <Loader style={{ margin: 'auto' }} />
-          ) : account && !stakingRewardsExist ? (
-            <OutlineCard>No active pools</OutlineCard>
-          ) : account && stakingInfos?.length !== 0 && !activeStakingInfos ? (
-            <OutlineCard>No active pools</OutlineCard>
-          ) : !account ? (
-            <OutlineCard>Please connect your wallet to see available pools</OutlineCard>
+          {account ? (
+            <>
+              {shownArr.length !== 0 ? (
+                <>
+                  {shownArr.map((addr: string) => (
+                    <PoolCard key={addr} address={addr} pool={shownObj[addr]} handleSetPoolType={handleSetPoolType} />
+                  ))}
+                </>
+              ) : (
+                <OutlineCard>{assets.emptyText}</OutlineCard>
+              )}
+            </>
           ) : (
-            activeStakingInfos?.map(stakingInfo => {
-              return <PoolCard key={stakingInfo.pid} stakingInfo={stakingInfo} isArchived={false} />
-            })
+            <OutlineCard>Please connect your wallet to see available pools</OutlineCard>
           )}
-        </PoolSection>*/}
+        </PoolSection>
       </AutoColumn>
     </PageWrapper>
   )

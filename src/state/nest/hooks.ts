@@ -1,15 +1,27 @@
 import React, { useState } from 'react'
-import { CurrencyAmount, JSBI, Token, TokenAmount, ChainId } from '@venomswap/sdk'
+import { abi as IUniswapV2PairABI } from '@venomswap/core/build/IUniswapV2Pair.json'
+import { CurrencyAmount, JSBI, Token, TokenAmount, ChainId, Fraction } from '@venomswap/sdk'
 import { Interface } from '@ethersproject/abi'
 import { useActiveWeb3React } from '../../hooks'
 import { tryParseAmount } from '../swap/hooks'
-import { useMasterNestContract } from '../../hooks/useContract'
+import { useMasterBreederContract, useMasterNestContract } from '../../hooks/useContract'
 import { useMultipleContractSingleData } from '../multicall/hooks'
 import { ethers } from 'ethers'
 import NEST_POOL_ABI from '../../constants/abis/nest-pool.json'
 import NEST_TOKEN_ABI from '../../constants/abis/nest-token.json'
 import usePrevious from '../../hooks/usePrevious'
 import { ZERO_ADDRESS } from '../../constants'
+import calculateApr from '../../utils/calculateApr'
+import calculateWethAdjustedTotalStakedAmount from '../../utils/calculateWethAdjustedTotalStakedAmount'
+import determineBaseToken from '../../utils/determineBaseToken'
+import useTokensWithWethPrices from '../../hooks/useTokensWithWETHPrices'
+import { getPairInstance } from '../../utils'
+import getBlocksPerYear from '../../utils/getBlocksPerYear'
+import { validNestPoolInfo, validExtraNestPoolInfo } from '../../utils/validNestPoolInfo'
+// import getBlocksPerYear from '../../utils/getBlocksPerYear'
+// import calculateApr from '../../utils/calculateApr'
+
+const PAIR_INTERFACE = new Interface(IUniswapV2PairABI)
 
 const POOL_INTERFACE = new Interface(NEST_POOL_ABI)
 const TOKEN_INTERFACE = new Interface(NEST_TOKEN_ABI)
@@ -78,9 +90,82 @@ export interface PoolInterface {
   isLoad: boolean
 }
 
-export function useSingleNestPool(address: string): PoolInterface {
+export function useNestPoolsAddrsList(): Array<string> {
+  const masterNestContract = useMasterNestContract()
+  const [poolsAddrs, setPoolsAddrs] = useState<Array<string>>([])
+  React.useEffect(() => {
+    async function getNestList() {
+      // TODO important load all events (from, to)
+      // "exceed maximum block range: 5000"
+      const res: any = await masterNestContract?.queryFilter(
+        {
+          address: masterNestContract?.address,
+          topics: [ethers.utils.id('NewSmartChefContract(address)')]
+        },
+        12109559,
+        12109559 + 4999
+      )
+      // console.log('nest res: ', res)
+      const addrs = res.map((i: any) => i?.args?.[0]) ?? []
+      setPoolsAddrs(addrs)
+    }
+
+    getNestList()
+  }, [])
+
+  return poolsAddrs
+}
+
+function useNestPoolApr(sToken: Token, rToken: Token, rPerBlockAmount: TokenAmount, _rPerBlock: JSBI) {
+  const { chainId = 97 } = useActiveWeb3React() // TODO fix it
+  const blocksPerYear = getBlocksPerYear(chainId)
+  const masterBreederContract = useMasterBreederContract()
+
+  const tokensWithPrices = useTokensWithWethPrices()
+  const govToken = tokensWithPrices?.govToken?.token
+  const govTokenWETHPrice = tokensWithPrices?.govToken?.price
+  const tokensAddreses = [sToken.address, rToken.address]
+  const baseToken = determineBaseToken(tokensWithPrices, [sToken, rToken])
+  console.info('baseToken: ', baseToken)
+  const lpTokenTotalSupplies = useMultipleContractSingleData(tokensAddreses, PAIR_INTERFACE, 'totalSupply')
+  const lpTokenReserves = useMultipleContractSingleData(tokensAddreses, PAIR_INTERFACE, 'getReserves')
+  const lpTokenBalances = useMultipleContractSingleData(tokensAddreses, PAIR_INTERFACE, 'balanceOf', [
+    masterBreederContract?.address
+  ])
+  console.info(lpTokenTotalSupplies, lpTokenReserves, lpTokenBalances)
+
+  const poolBlockRewards = new TokenAmount(govToken, _rPerBlock)
+  const poolShare = new Fraction(poolBlockRewards.raw, rPerBlockAmount.raw)
+  console.info('poolBlockRewards: ', poolBlockRewards)
+  console.info('poolShare: ', poolShare)
+  const dummyPair = getPairInstance(new TokenAmount(sToken, '0'), new TokenAmount(rToken, '0'))
+  console.info('dummyPair: ', dummyPair)
+  const totalLpTokenSupply = new TokenAmount(
+    dummyPair.liquidityToken,
+    JSBI.BigInt(lpTokenTotalSupplies[0].result?.[0] ?? 0)
+  )
+  const totalStakedAmount = new TokenAmount(dummyPair.liquidityToken, JSBI.BigInt(lpTokenBalances[0].result?.[0] ?? 0))
+  const lpTokenReserve = lpTokenReserves[0].result
+
+  const totalStakedAmountWETH = calculateWethAdjustedTotalStakedAmount(
+    chainId,
+    baseToken,
+    tokensWithPrices,
+    [sToken, rToken],
+    totalLpTokenSupply,
+    totalStakedAmount,
+    lpTokenReserve
+  )
+
+  return totalStakedAmountWETH
+    ? calculateApr(govTokenWETHPrice, poolBlockRewards, blocksPerYear, poolShare, totalStakedAmountWETH)
+    : undefined
+}
+console.log('useNestPoolApr: ', useNestPoolApr)
+
+export function useSingleNestPool(address: string, defaultPool?: PoolInterface | undefined): PoolInterface {
   const { account, chainId } = useActiveWeb3React()
-  const [pool, setPool] = useState({ ...NEW_DEFAULT_POOL })
+  const [pool, setPool] = useState(defaultPool ? { ...defaultPool } : { ...NEW_DEFAULT_POOL })
   const prevPool = usePrevious(pool) ?? undefined
   const [nestPool, setNestPool] = useState<PoolInterface>({ ...NEW_DEFAULT_POOL })
   const prevNestPool = usePrevious(nestPool) ?? undefined
@@ -99,53 +184,16 @@ export function useSingleNestPool(address: string): PoolInterface {
 
   React.useEffect(() => {
     if (
-      poolUserInfos &&
-      !poolUserInfos[0].error &&
-      !poolUserInfos[0].loading &&
-      poolUserInfos[0]?.result?.amount &&
-      poolUserInfos[0]?.result?.rewardDebt &&
-      poolStakedToken &&
-      poolStakedToken[0] &&
-      !poolStakedToken[0].error &&
-      !poolStakedToken[0].loading &&
-      poolStakedToken[0]?.result?.[0] &&
-      poolStakedToken[0]?.result?.[0] &&
-      poolRewardToken &&
-      poolRewardToken[0] &&
-      !poolRewardToken[0].error &&
-      !poolRewardToken[0].loading &&
-      poolRewardToken[0]?.result?.[0] &&
-      poolRewardToken[0]?.result?.[0] &&
-      poolLimitPerUser &&
-      poolLimitPerUser[0] &&
-      !poolLimitPerUser[0].error &&
-      !poolLimitPerUser[0].loading &&
-      poolLimitPerUser[0]?.result?.[0] &&
-      poolLimitPerUser[0]?.result?.[0] &&
-      poolStartBlock &&
-      poolStartBlock[0] &&
-      !poolStartBlock[0].error &&
-      !poolStartBlock[0].loading &&
-      poolStartBlock[0]?.result?.[0] &&
-      poolStartBlock[0]?.result?.[0] &&
-      poolBonusEndBlock &&
-      poolBonusEndBlock[0] &&
-      !poolBonusEndBlock[0].error &&
-      !poolBonusEndBlock[0].loading &&
-      poolBonusEndBlock[0]?.result?.[0] &&
-      poolBonusEndBlock[0]?.result?.[0] &&
-      poolLastRewardBlock &&
-      poolLastRewardBlock[0] &&
-      !poolLastRewardBlock[0].error &&
-      !poolLastRewardBlock[0].loading &&
-      poolLastRewardBlock[0]?.result?.[0] &&
-      poolLastRewardBlock[0]?.result?.[0] &&
-      poolPendingReward &&
-      poolPendingReward[0] &&
-      !poolPendingReward[0].error &&
-      !poolPendingReward[0].loading &&
-      poolPendingReward[0]?.result?.[0] &&
-      poolPendingReward[0]?.result?.[0]
+      validNestPoolInfo(
+        poolUserInfos,
+        poolStakedToken,
+        poolRewardToken,
+        poolLastRewardBlock,
+        poolLimitPerUser,
+        poolStartBlock,
+        poolBonusEndBlock,
+        poolPendingReward
+      )
     ) {
       const poolAddress = address
 
@@ -207,45 +255,7 @@ export function useSingleNestPool(address: string): PoolInterface {
   ])
 
   React.useEffect(() => {
-    if (
-      tokensSymbols &&
-      tokensSymbols[0] &&
-      !tokensSymbols[0].error &&
-      !tokensSymbols[0].loading &&
-      tokensSymbols[0]?.result?.[0] &&
-      tokensSymbols[1] &&
-      !tokensSymbols[1].error &&
-      !tokensSymbols[1].loading &&
-      tokensSymbols[1]?.result?.[0] &&
-      tokensDecimals &&
-      tokensDecimals[0] &&
-      !tokensDecimals[0].error &&
-      !tokensDecimals[0].loading &&
-      tokensDecimals[0]?.result?.[0] &&
-      tokensDecimals[1] &&
-      !tokensDecimals[1].error &&
-      !tokensDecimals[1].loading &&
-      tokensDecimals[1]?.result?.[0] &&
-      tokensNames &&
-      tokensNames[0] &&
-      !tokensNames[0].error &&
-      !tokensNames[0].loading &&
-      tokensNames[0]?.result?.[0] &&
-      tokensNames[1] &&
-      !tokensNames[1].error &&
-      !tokensNames[1].loading &&
-      tokensNames[1]?.result?.[0] &&
-      tokensBalanceOf &&
-      tokensBalanceOf[0] &&
-      !tokensBalanceOf[0].error &&
-      !tokensBalanceOf[0].loading &&
-      tokensBalanceOf[0]?.result?.[0] &&
-      contractStakedBalance &&
-      contractStakedBalance[0] &&
-      !contractStakedBalance[0].error &&
-      !contractStakedBalance[0].loading &&
-      contractStakedBalance[0]?.result?.[0]
-    ) {
+    if (validExtraNestPoolInfo(tokensSymbols, tokensDecimals, tokensBalanceOf, tokensNames, contractStakedBalance)) {
       const sTokenDecimals = tokensDecimals[0]?.result?.[0]
       const sTokenSymbol = tokensSymbols[0]?.result?.[0]
       const sTokenName = tokensSymbols[0]?.result?.[0]
@@ -300,264 +310,10 @@ export function useSingleNestPool(address: string): PoolInterface {
     }
   }, [pool, prevNestPool, tokensSymbols, tokensBalanceOf])
 
+  // const apr = useNestPoolApr(nestPool.sToken, nestPool.rToken, nestPool.rPerBlockAmount, nestPool._rPerBlock)
+  // console.info('apr: ', apr)
+
   return nestPool
-}
-
-export function useNestPoolsList(
-  active: boolean | undefined = undefined
-): {
-  // poolsList: Array<PoolInterface>
-  poolsAddrs: Array<string>
-} {
-  const { account, chainId } = useActiveWeb3React()
-  const masterNestContract = useMasterNestContract()
-  const [nestPools, setNestPool] = useState<Array<string>>([])
-  const [pools, setPools] = useState<Array<PoolInterface>>([])
-  const [nestPoolsExtra, setNestPoolExtra] = useState<Array<PoolInterface>>([])
-  const [tokensAdrs, setTokensAdrs] = useState<any>({})
-  React.useEffect(() => {
-    async function getNestList() {
-      // TODO important load all events (from, to)
-      // "exceed maximum block range: 5000"
-      const res: any = await masterNestContract?.queryFilter(
-        {
-          address: masterNestContract?.address,
-          topics: [ethers.utils.id('NewSmartChefContract(address)')]
-        },
-        12109559,
-        12109559 + 4999
-      )
-      console.log('nest res: ', res)
-      const nestList = res.map((i: any) => i?.args?.[0]) ?? []
-      setNestPool(nestList)
-    }
-
-    getNestList()
-  }, [])
-  const poolsUserInfos = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'userInfo', [account ?? undefined])
-  const poolsRewardToken = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'rewardToken')
-  const poolsStakedToken = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'stakedToken')
-  const poolsRewardPerBlock = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'rewardPerBlock')
-  const poolsLimitPerUser = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'poolLimitPerUser')
-  const poolsStartBlock = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'startBlock')
-  const poolsBonusEndBlock = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'bonusEndBlock')
-  const poolsLastRewardBlock = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'lastRewardBlock')
-  const poolsPendingReward = useMultipleContractSingleData(nestPools, POOL_INTERFACE, 'pendingReward', [
-    account ?? undefined
-  ])
-
-  React.useEffect(() => {
-    const pools = nestPools.reduce((ps: any, address: string, i: number): Array<PoolInterface> => {
-      if (
-        poolsUserInfos &&
-        poolsUserInfos[i] &&
-        !poolsUserInfos[i].error &&
-        !poolsUserInfos[i].loading &&
-        poolsUserInfos[i]?.result?.amount &&
-        poolsUserInfos[i]?.result?.rewardDebt &&
-        poolsStakedToken &&
-        poolsStakedToken[i] &&
-        !poolsStakedToken[i].error &&
-        !poolsStakedToken[i].loading &&
-        poolsStakedToken[i]?.result?.[0] &&
-        poolsStakedToken[i]?.result?.[0] &&
-        poolsRewardToken &&
-        poolsRewardToken[i] &&
-        !poolsRewardToken[i].error &&
-        !poolsRewardToken[i].loading &&
-        poolsRewardToken[i]?.result?.[0] &&
-        poolsRewardToken[i]?.result?.[0] &&
-        poolsLimitPerUser &&
-        poolsLimitPerUser[i] &&
-        !poolsLimitPerUser[i].error &&
-        !poolsLimitPerUser[i].loading &&
-        poolsLimitPerUser[i]?.result?.[0] &&
-        poolsLimitPerUser[i]?.result?.[0] &&
-        poolsStartBlock &&
-        poolsStartBlock[i] &&
-        !poolsStartBlock[i].error &&
-        !poolsStartBlock[i].loading &&
-        poolsStartBlock[i]?.result?.[0] &&
-        poolsStartBlock[i]?.result?.[0] &&
-        poolsBonusEndBlock &&
-        poolsBonusEndBlock[i] &&
-        !poolsBonusEndBlock[i].error &&
-        !poolsBonusEndBlock[i].loading &&
-        poolsBonusEndBlock[i]?.result?.[0] &&
-        poolsBonusEndBlock[i]?.result?.[0] &&
-        poolsLastRewardBlock &&
-        poolsLastRewardBlock[i] &&
-        !poolsLastRewardBlock[i].error &&
-        !poolsLastRewardBlock[i].loading &&
-        poolsLastRewardBlock[i]?.result?.[0] &&
-        poolsLastRewardBlock[i]?.result?.[0]
-      ) {
-        const poolAddress = address
-
-        const startBlock = JSBI.BigInt(poolsStartBlock[i].result?.[0].toString())
-        const lastRewardBlock = JSBI.BigInt(poolsLastRewardBlock[0].result?.[0].toString())
-        const bonusEndBlock = JSBI.BigInt(poolsBonusEndBlock[0].result?.[0].toString())
-
-        const _sTokenAddress = poolsStakedToken[i].result?.[0]
-        const _sLimitPerUser = JSBI.BigInt(poolsLimitPerUser[i].result?.[0].toString())
-        const _sAmount = JSBI.BigInt(poolsUserInfos?.[i]?.result?.amount.toString())
-
-        const _rTokenAddress = poolsRewardToken[i].result?.[0]
-        const _rPerBlock = JSBI.BigInt(poolsRewardPerBlock[i].result?.[0].toString())
-        const _rDebt = JSBI.BigInt(poolsUserInfos?.[i]?.result?.rewardDebt.toString())
-        const _rPending = JSBI.BigInt(poolsPendingReward[i].result?.[0].toString())
-
-        const poolInfo = {
-          ...NEW_DEFAULT_POOL,
-          poolAddress,
-          startBlock,
-          lastRewardBlock,
-          bonusEndBlock,
-          _sTokenAddress,
-          _sLimitPerUser,
-          _sAmount,
-          _rTokenAddress,
-          _rPerBlock,
-          _rDebt,
-          _rPending
-        }
-
-        ps.push(poolInfo)
-
-        if (poolInfo._sTokenAddress && poolInfo._rTokenAddress) {
-          if (!tokensAdrs[poolInfo._sTokenAddress])
-            setTokensAdrs({ ...tokensAdrs, [poolInfo._sTokenAddress]: poolInfo._sTokenAddress })
-          if (!tokensAdrs[poolInfo._rTokenAddress])
-            setTokensAdrs({ ...tokensAdrs, [poolInfo._rTokenAddress]: poolInfo._rTokenAddress })
-        }
-      }
-
-      return ps
-    }, [])
-
-    setPools(pools)
-  }, [
-    nestPools,
-    poolsUserInfos,
-    poolsStakedToken,
-    poolsRewardToken,
-    poolsLimitPerUser,
-    poolsRewardPerBlock,
-    poolsStartBlock,
-    poolsBonusEndBlock,
-    poolsLastRewardBlock,
-    tokensAdrs,
-    setTokensAdrs
-  ])
-
-  const tokensAdrsArr = React.useMemo(() => Object.keys(tokensAdrs), [tokensAdrs])
-  const tokensSymbols = useMultipleContractSingleData(tokensAdrsArr, TOKEN_INTERFACE, 'symbol')
-  const tokensDecimals = useMultipleContractSingleData(tokensAdrsArr, TOKEN_INTERFACE, 'decimals')
-  const tokensNames = useMultipleContractSingleData(tokensAdrsArr, TOKEN_INTERFACE, 'name')
-  const tokensBalanceOf = useMultipleContractSingleData(tokensAdrsArr, TOKEN_INTERFACE, 'balanceOf', [
-    account ?? undefined
-  ])
-
-  React.useEffect(() => {
-    const poolsExtraInfo = pools.reduce((acc: any, pool: PoolInterface): Array<PoolInterface> => {
-      const stakedTokenInd = tokensAdrsArr.findIndex(adr => pool._sTokenAddress === adr)
-      const rewardTokenInd = tokensAdrsArr.findIndex(adr => pool._rTokenAddress === adr)
-
-      if (
-        tokensSymbols &&
-        tokensSymbols[stakedTokenInd] &&
-        !tokensSymbols[stakedTokenInd].error &&
-        !tokensSymbols[stakedTokenInd].loading &&
-        tokensSymbols[stakedTokenInd]?.result?.[0] &&
-        tokensSymbols[rewardTokenInd] &&
-        !tokensSymbols[rewardTokenInd].error &&
-        !tokensSymbols[rewardTokenInd].loading &&
-        tokensSymbols[rewardTokenInd]?.result?.[0] &&
-        tokensDecimals &&
-        tokensDecimals[stakedTokenInd] &&
-        !tokensDecimals[stakedTokenInd].error &&
-        !tokensDecimals[stakedTokenInd].loading &&
-        tokensDecimals[stakedTokenInd]?.result?.[0] &&
-        tokensDecimals[rewardTokenInd] &&
-        !tokensDecimals[rewardTokenInd].error &&
-        !tokensDecimals[rewardTokenInd].loading &&
-        tokensDecimals[rewardTokenInd]?.result?.[0] &&
-        tokensNames &&
-        tokensNames[stakedTokenInd] &&
-        !tokensNames[stakedTokenInd].error &&
-        !tokensNames[stakedTokenInd].loading &&
-        tokensNames[stakedTokenInd]?.result?.[0] &&
-        tokensNames[rewardTokenInd] &&
-        !tokensNames[rewardTokenInd].error &&
-        !tokensNames[rewardTokenInd].loading &&
-        tokensNames[rewardTokenInd]?.result?.[0] &&
-        tokensBalanceOf &&
-        tokensBalanceOf[stakedTokenInd] &&
-        !tokensBalanceOf[stakedTokenInd].error &&
-        !tokensBalanceOf[stakedTokenInd].loading &&
-        tokensBalanceOf[stakedTokenInd]?.result?.[0]
-      ) {
-        const sTokenDecimals = tokensDecimals[stakedTokenInd]?.result?.[0]
-        const sTokenSymbol = tokensSymbols[stakedTokenInd]?.result?.[0]
-        const sTokenName = tokensSymbols[stakedTokenInd]?.result?.[0]
-
-        const sBalanceOf = JSBI.BigInt(tokensBalanceOf[stakedTokenInd]?.result?.[0])
-        // const cStakedBalanceOf = JSBI.BigInt(contractStakedBalance[0]?.result?.[0])
-
-        const rTokenDecimals = tokensDecimals[rewardTokenInd]?.result?.[0]
-        const rTokenSymbol = tokensSymbols[rewardTokenInd]?.result?.[0]
-        const rTokenName = tokensSymbols[rewardTokenInd]?.result?.[0]
-
-        const sToken = new Token(
-          chainId ? chainId : ChainId.BSC_TESTNET, // TOOD fix
-          pool._sTokenAddress,
-          sTokenDecimals,
-          sTokenSymbol,
-          sTokenName
-        )
-        const sAmount = new TokenAmount(sToken, pool._sAmount)
-        const sLimitPerUser = new TokenAmount(sToken, pool._sLimitPerUser)
-        const sFreeAmount = new TokenAmount(sToken, sBalanceOf)
-        // const sAllAmount = new TokenAmount(sToken, cStakedBalanceOf)
-
-        const rToken = new Token(
-          chainId ? chainId : ChainId.BSC_TESTNET, // TOOD fix
-          pool._rTokenAddress,
-          rTokenDecimals,
-          rTokenSymbol,
-          rTokenName
-        )
-        const rPerBlockAmount = new TokenAmount(rToken, pool._rPerBlock)
-        const rClaimedAmount = new TokenAmount(rToken, pool._rDebt)
-        const rUnclaimedAmount = new TokenAmount(rToken, pool._rPending)
-
-        acc.push({
-          ...pool,
-          sToken,
-          sAmount,
-          sLimitPerUser,
-          sFreeAmount,
-          // sAllAmount,
-          rToken,
-          rPerBlockAmount,
-          rClaimedAmount,
-          rUnclaimedAmount,
-          isLoad: true
-        })
-      }
-
-      return acc
-    }, [])
-
-    setNestPoolExtra(poolsExtraInfo)
-  }, [pools, tokensAdrsArr, tokensSymbols, tokensBalanceOf])
-
-  console.log('poolsList: ', nestPoolsExtra)
-
-  return {
-    poolsAddrs: nestPools
-    // poolsList: nestPoolsExtra
-  }
 }
 
 // based on typed value
@@ -622,3 +378,15 @@ export function useDerivedUnstakeInfo(
     error
   }
 }
+// https://github.com/pancakeswap/pancake-frontend/blob/5bc14994d8cd1334adb48acf0c40a2e68162c64b/src/utils/apr.ts#L12-L22
+// export const getPoolApr = (
+//   stakingTokenPrice: number,
+//   rewardTokenPrice: number,
+//   totalStaked: number,
+//   tokenPerBlock: number
+// ): number => {
+//   const totalRewardPricePerYear = new BigNumber(rewardTokenPrice).times(tokenPerBlock).times(BLOCKS_PER_YEAR)
+//   const totalStakingTokenInPool = new BigNumber(stakingTokenPrice).times(totalStaked)
+//   const apr = totalRewardPricePerYear.div(totalStakingTokenInPool).times(100)
+//   return apr.isNaN() || !apr.isFinite() ? null : apr.toNumber()
+// }

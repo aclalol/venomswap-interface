@@ -160,6 +160,7 @@ export function getPairAddress(tokenA: Token, tokenB: Token): string {
 
 export function getPairInstance(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount): Pair {
   const pair = new Pair(tokenAmountA, tokenAmountB)
+  console.info('pair: ', pair)
   Object.assign(pair, {
     liquidityToken: new Token(
       tokenAmountA.token.chainId,

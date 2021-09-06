@@ -21,6 +21,7 @@ import WithdrawModal from '../../components/nest/WithdrawModal'
 import ClaimModal from '../../components/nest/ClaimModal'
 import { CardSection, DataCard, CardNoise, CardBGImage } from '../../components/nest/styled'
 import { JSBI } from '@venomswap/sdk'
+import { useBlockNumber } from '../../state/application/hooks'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -56,7 +57,6 @@ const PoolData = styled(DataCard)`
   padding: 1rem;
   z-index: 1;
 `
-
 const DataRow = styled(RowBetween)`
   justify-content: center;
   gap: 12px;
@@ -66,28 +66,34 @@ const DataRow = styled(RowBetween)`
     gap: 12px;
   `};
 `
+const Body = styled(AutoColumn)`
+  width: 100%;
+`
 
 export default function Manage() {
-  // const { account, chainId } = useActiveWeb3React()
   const params = useParams<{ address: string }>()
-  const pool = useSingleNestPool(params?.address ?? undefined)
-  console.log('Nest Pool Info: ', pool)
+  const poolInfo = useSingleNestPool(params?.address ?? undefined)
+  const latestBlockNumber = useBlockNumber()
+  const isActive = Number(poolInfo.lastRewardBlock.toString()) >= Number(latestBlockNumber ?? 0)
+  const isDeposited = isActive && Boolean(poolInfo.sFreeAmount.greaterThan(JSBI.BigInt(0)))
+  const isClaimable = Boolean(poolInfo.rUnclaimedAmount.greaterThan(JSBI.BigInt(0)))
+  const isWithdrawable = Boolean(poolInfo.sAmount.greaterThan(JSBI.BigInt(0)))
   const [showStakingModal, setShowStakingModal] = React.useState(false)
   const [showUnstakingModal, setShowUnstakingModal] = React.useState(false)
   const [showClaimRewardModal, setShowClaimRewardModal] = React.useState(false)
   // fade cards if nothing staked or nothing earned yet
-  const disableTop = !pool?.sAmount || pool.sAmount.equalTo(JSBI.BigInt(0))
+  const disableTop = !poolInfo?.sAmount || poolInfo.sAmount.equalTo(JSBI.BigInt(0))
 
   const backgroundColor = useColor()
 
-  const countUpAmount = pool.rUnclaimedAmount?.toSignificant() ?? '0'
+  const countUpAmount = poolInfo.rUnclaimedAmount?.toSignificant() ?? '0'
   const countUpAmountPrevious = usePrevious(countUpAmount) ?? '0'
 
   return (
     <PageWrapper gap="lg" justify="center">
       <RowBetween style={{ gap: '24px' }}>
         <TYPE.mediumHeader style={{ margin: 0 }}>
-          {pool?.sToken?.symbol}-{pool?.rToken?.symbol}
+          {poolInfo?.sToken?.symbol}-{poolInfo?.rToken?.symbol}
         </TYPE.mediumHeader>
         <DoubleCurrencyLogo currency0={undefined} currency1={undefined} size={24} />
       </RowBetween>
@@ -97,7 +103,7 @@ export default function Manage() {
           <AutoColumn gap="sm">
             <TYPE.body style={{ margin: 0 }}>Total Deposits</TYPE.body>
             <TYPE.body fontSize={24} fontWeight={500}>
-              {pool.sAllAmount?.toSignificant(6, { groupSeparator: ',' })}
+              {poolInfo.sAllAmount?.toSignificant(6, { groupSeparator: ',' })} {poolInfo.sToken?.symbol}
             </TYPE.body>
           </AutoColumn>
         </PoolData>
@@ -105,69 +111,29 @@ export default function Manage() {
           <AutoColumn gap="sm">
             <TYPE.body style={{ margin: 0 }}>Last Reward Block</TYPE.body>
             <TYPE.body fontSize={24} fontWeight={500}>
-              {pool?.lastRewardBlock.toString()} blocks
+              {poolInfo?.lastRewardBlock.toString()} blocks
             </TYPE.body>
           </AutoColumn>
         </PoolData>
       </DataRow>
 
-      <DataRow style={{ gap: '24px' }}>
-        <PoolData>
-          <AutoColumn gap="sm">
-            <TYPE.body style={{ margin: 0 }}>Reward Per Block</TYPE.body>
-            <TYPE.body fontSize={24} fontWeight={500}>
-              {pool.rPerBlockAmount?.toSignificant(6, { groupSeparator: ',' })} {pool.rToken?.symbol}
-            </TYPE.body>
-          </AutoColumn>
-        </PoolData>
-        <PoolData>
-          <AutoColumn gap="sm">
-            <TYPE.body style={{ margin: 0 }}>Bonus End Block</TYPE.body>
-            <TYPE.body fontSize={24} fontWeight={500}>
-              {pool.bonusEndBlock.toString()} blocks
-            </TYPE.body>
-          </AutoColumn>
-        </PoolData>
-      </DataRow>
-
-      {pool && pool.isLoad && (
+      {poolInfo && poolInfo.isLoad && (
         <>
-          <DepositModal isOpen={showStakingModal} onDismiss={() => setShowStakingModal(false)} poolInfo={pool} />
-          <WithdrawModal isOpen={showUnstakingModal} onDismiss={() => setShowUnstakingModal(false)} poolInfo={pool} />
-          <ClaimModal isOpen={showClaimRewardModal} onDismiss={() => setShowClaimRewardModal(false)} poolInfo={pool} />
+          <DepositModal isOpen={showStakingModal} onDismiss={() => setShowStakingModal(false)} poolInfo={poolInfo} />
+          <WithdrawModal
+            isOpen={showUnstakingModal}
+            onDismiss={() => setShowUnstakingModal(false)}
+            poolInfo={poolInfo}
+          />
+          <ClaimModal
+            isOpen={showClaimRewardModal}
+            onDismiss={() => setShowClaimRewardModal(false)}
+            poolInfo={poolInfo}
+          />
         </>
       )}
 
-      <AutoColumn gap="lg" justify="center">
-        <RowBetween>
-          <TYPE.white>User {pool.sToken?.symbol}</TYPE.white>
-          <TYPE.white>
-            {pool.sFreeAmount?.toSignificant(6, { groupSeparator: ',' })} {pool.sToken?.symbol}
-          </TYPE.white>
-        </RowBetween>
-
-        <RowBetween>
-          <TYPE.white>User Deposited</TYPE.white>
-          <TYPE.white>
-            {pool.sAmount?.toSignificant(6, { groupSeparator: ',' })} /{' '}
-            {pool.sLimitPerUser?.toSignificant(6, { groupSeparator: ',' })} {pool.sToken?.symbol}
-          </TYPE.white>
-        </RowBetween>
-
-        <RowBetween>
-          <TYPE.white>User Pending Reward</TYPE.white>
-          <TYPE.white>
-            {pool?.rUnclaimedAmount?.toSignificant(6, { groupSeparator: ',' })} {pool.sToken?.symbol}
-          </TYPE.white>
-        </RowBetween>
-
-        <RowBetween>
-          <TYPE.white>User Claimed Reward</TYPE.white>
-          <TYPE.white>
-            {pool.rClaimedAmount?.toSignificant(6, { groupSeparator: ',' })} {pool.sToken?.symbol}
-          </TYPE.white>
-        </RowBetween>
-
+      <Body gap="lg" justify="center">
         <BottomSection gap="lg" justify="center">
           <StyledDataCard disabled={disableTop} bgColor={backgroundColor}>
             <CardSection>
@@ -175,26 +141,26 @@ export default function Manage() {
               <CardNoise />
               <AutoColumn gap="md">
                 <RowBetween>
-                  <TYPE.white fontWeight={600}>Your {pool.sToken?.symbol} deposits</TYPE.white>
+                  <TYPE.white fontWeight={600}>Your {poolInfo.sToken?.symbol} deposits</TYPE.white>
                 </RowBetween>
                 <RowBetween style={{ alignItems: 'baseline' }}>
                   <TYPE.white fontSize={36} fontWeight={600}>
-                    {pool.sAmount?.toSignificant(6) ?? '-'}
+                    {poolInfo.sAmount?.toSignificant(6) ?? '-'}
                   </TYPE.white>
-                  <TYPE.white>{pool.sToken?.symbol}</TYPE.white>
+                  <TYPE.white>{poolInfo.sToken?.symbol}</TYPE.white>
                 </RowBetween>
               </AutoColumn>
             </CardSection>
           </StyledDataCard>
-          <StyledBottomCard dim={pool?.sAmount?.equalTo(JSBI.BigInt(0))}>
+          <StyledBottomCard dim={poolInfo?.sAmount?.equalTo(JSBI.BigInt(0))}>
             <CardBGImage desaturate />
             <CardNoise />
             <AutoColumn gap="sm">
               <RowBetween>
                 <div>
-                  <TYPE.black>Your unclaimed {pool.rToken?.symbol}</TYPE.black>
+                  <TYPE.black>Your unclaimed {poolInfo.rToken?.symbol}</TYPE.black>
                 </div>
-                {pool?.rUnclaimedAmount && pool?.rUnclaimedAmount.equalTo(JSBI.BigInt(0)) && (
+                {poolInfo?.rUnclaimedAmount && poolInfo?.rUnclaimedAmount.equalTo(JSBI.BigInt(0)) && (
                   <ButtonEmpty
                     padding="8px"
                     borderRadius="8px"
@@ -227,18 +193,41 @@ export default function Manage() {
 
         <AwaitingRewards />
 
+        <TYPE.main style={{ textAlign: 'center' }} fontSize={14}>
+          <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px' }}>
+            ⭐️
+          </span>
+          When you deposit or withdraw the contract will automatically claim {poolInfo.rToken.symbol} on your behalf.
+          <br />
+          <br />
+          <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px' }}>
+            💡
+          </span>
+          There are no lockups for these rewards. You&apos;ll receive 100% of the rewards you see unlocked.
+        </TYPE.main>
+
         <DataRow style={{ marginBottom: '1rem' }}>
-          <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowStakingModal(true)}>
-            Deposit
-          </ButtonPrimary>
-          <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowClaimRewardModal(true)}>
-            Claim
-          </ButtonPrimary>
-          <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowUnstakingModal(true)}>
-            Withdraw
-          </ButtonPrimary>
+          {isDeposited && (
+            <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowStakingModal(true)}>
+              Deposit
+            </ButtonPrimary>
+          )}
+          {isClaimable && (
+            <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowClaimRewardModal(true)}>
+              Claim
+            </ButtonPrimary>
+          )}
+          {isWithdrawable && (
+            <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowUnstakingModal(true)}>
+              Withdraw
+            </ButtonPrimary>
+          )}
         </DataRow>
-      </AutoColumn>
+
+        <TYPE.main>
+          You have {poolInfo.sFreeAmount.toSignificant(6)} {poolInfo.sToken.symbol} tokens available to deposit
+        </TYPE.main>
+      </Body>
     </PageWrapper>
   )
 }
