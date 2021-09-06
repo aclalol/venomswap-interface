@@ -5,31 +5,28 @@ import styled from 'styled-components'
 import { RowBetween } from '../Row'
 import { TYPE, CloseIcon } from '../../theme'
 import { ButtonError } from '../Button'
-import { PoolInterface } from '../../state/nest/hooks'
-import { useMasterBreederContract } from '../../hooks/useContract'
+import { NewPoolInterface } from '../../state/nest/hooks'
+import { useNestPoolContract } from '../../hooks/useContract'
 import { SubmittedView, LoadingView } from '../ModalViews'
 import { TransactionResponse } from '@ethersproject/providers'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { useActiveWeb3React } from '../../hooks'
-import { calculateGasMargin } from '../../utils'
-import useGovernanceToken from '../../hooks/useGovernanceToken'
+import { GAS_LIMIT } from '../../constants/pit'
+import { JSBI } from '@venomswap/sdk'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
   padding: 1rem;
 `
 
-interface StakingModalProps {
+interface ClaimModalProps {
   isOpen: boolean
   onDismiss: () => void
-  stakingInfo: PoolInterface
+  poolInfo: NewPoolInterface
 }
 
-export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: StakingModalProps) {
+export default function ClaimModal({ isOpen, onDismiss, poolInfo }: ClaimModalProps) {
   const { account } = useActiveWeb3React()
-
-  const govToken = useGovernanceToken()
-
   // monitor call to help UI loading state
   const addTransaction = useTransactionAdder()
   const [hash, setHash] = useState<string | undefined>()
@@ -43,21 +40,19 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
     onDismiss()
   }
 
-  const masterBreeder = useMasterBreederContract()
+  const nestPoolContract = useNestPoolContract(poolInfo.poolAddress)
 
   async function onClaimReward() {
-    if (masterBreeder && stakingInfo?.amount) {
+    if (nestPoolContract && poolInfo?.isLoad) {
       setAttempting(true)
 
-      const estimatedGas = await masterBreeder.estimateGas.claimReward(stakingInfo.pid)
-
-      await masterBreeder
-        .claimReward(stakingInfo.pid, {
-          gasLimit: calculateGasMargin(estimatedGas)
+      await nestPoolContract
+        .deposit(`0x${JSBI.BigInt(0).toString(16)}`, {
+          gasLimit: GAS_LIMIT // TODO calculateGasMargin(estimatedGas)
         })
         .then((response: TransactionResponse) => {
           addTransaction(response, {
-            summary: `Claim accumulated ${govToken?.symbol} rewards`
+            summary: `Claim accumulated ${poolInfo.rToken.symbol} rewards`
           })
           setHash(response.hash)
         })
@@ -72,13 +67,11 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
   }
 
   let error: string | undefined
+
   if (!account) {
     error = 'Connect Wallet'
   }
-  if (!stakingInfo?.amount) {
-    error = error ?? 'Enter an amount'
-  }
-  // TODO Input + simplify (like pit claim)
+
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>
       {!attempting && !hash && !failed && (
@@ -87,15 +80,15 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
             <TYPE.mediumHeader>Claim</TYPE.mediumHeader>
             <CloseIcon onClick={wrappedOnDismiss} />
           </RowBetween>
-          {stakingInfo?.rewardDebt && (
+          {poolInfo?.rUnclaimedAmount && (
             <AutoColumn justify="center" gap="md">
               <TYPE.body fontWeight={600} fontSize={36}>
-                {stakingInfo?.rewardDebt?.toString()}
+                {poolInfo?.rUnclaimedAmount?.toSignificant(6)}
               </TYPE.body>
-              <TYPE.body>Unclaimed {govToken?.symbol}</TYPE.body>
+              <TYPE.body>Unclaimed {poolInfo?.rToken.symbol}</TYPE.body>
             </AutoColumn>
           )}
-          <ButtonError disabled={!!error} error={!!error && !!stakingInfo?.amount} onClick={onClaimReward}>
+          <ButtonError disabled={!!error} error={!!error && !!poolInfo?.sAmount} onClick={onClaimReward}>
             {error ?? 'Claim'}
           </ButtonError>
         </ContentWrapper>
@@ -104,7 +97,7 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
         <LoadingView onDismiss={wrappedOnDismiss}>
           <AutoColumn gap="12px" justify={'center'}>
             <TYPE.body fontSize={20}>
-              Claiming {stakingInfo?.rewardDebt?.toString()} {govToken?.symbol}
+              Claiming {poolInfo?.rUnclaimedAmount?.toSignificant(6)} {poolInfo?.rToken.symbol}
             </TYPE.body>
           </AutoColumn>
         </LoadingView>
@@ -113,7 +106,7 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
         <SubmittedView onDismiss={wrappedOnDismiss} hash={hash}>
           <AutoColumn gap="12px" justify={'center'}>
             <TYPE.largeHeader>Transaction Submitted</TYPE.largeHeader>
-            <TYPE.body fontSize={20}>Claimed {govToken?.symbol}!</TYPE.body>
+            <TYPE.body fontSize={20}>Claimed {poolInfo?.rToken.symbol}!</TYPE.body>
           </AutoColumn>
         </SubmittedView>
       )}

@@ -140,12 +140,12 @@ export default function PoolCard({
           </TYPE.white>
         </RowBetween>
 
-        <RowBetween>
+        {/*<RowBetween>
           <TYPE.white>User Balance Of</TYPE.white>
           <TYPE.white>
             {ethers.utils.formatUnits(poolInfo.sBalanceOf.toString())} {poolInfo.sTokenSymbol}
           </TYPE.white>
-        </RowBetween>
+        </RowBetween>*/}
 
         <RowBetween>
           <TYPE.white>Deposited</TYPE.white>
@@ -161,12 +161,12 @@ export default function PoolCard({
           </TYPE.white>
         </RowBetween>
 
-        <RowBetween>
+        {/*<RowBetween>
           <TYPE.white>Reward Balance Of</TYPE.white>
           <TYPE.white>
             {ethers.utils.formatUnits(poolInfo.rBalanceOf.toString())} {poolInfo.rTokenSymbol}
           </TYPE.white>
-        </RowBetween>
+        </RowBetween>*/}
 
         <RowBetween>
           <TYPE.white>Limit Per User</TYPE.white>

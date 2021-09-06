@@ -46,7 +46,7 @@ export default function Nest() {
   // } = useActiveWeb3React()
   const activePoolsOnly = true
   const { nestPoolsExtra } = useNestInfo(activePoolsOnly)
-  console.log('poolsExtraInfo: ', nestPoolsExtra)
+  console.log('Nest Pools List: ', nestPoolsExtra)
 
   // const stakingRewardsExist = Boolean(typeof chainId === 'number' && (STAKING_REWARDS_INFO[chainId]?.length ?? 0)
   // > 0)

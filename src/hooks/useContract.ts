@@ -20,6 +20,7 @@ import {
 import { abi as MASTER_BREEDER_ABI } from '../constants/abis/MasterHepa.json'
 import MASTER_NEST_ABI from '../constants/abis/nest.json'
 import NEST_POOL_ABI from '../constants/abis/nest-pool.json'
+import NEST_TOKEN_ABI from '../constants/abis/nest-token.json'
 import { abi as GOVERNANCE_TOKEN_ABI } from '../constants/abis/HepaToken.json'
 import {
   ARGENT_WALLET_DETECTOR_ABI,
@@ -170,6 +171,10 @@ export function useMasterNestContract(withSignerIfPossible?: boolean): Contract 
 
 export function useNestPoolContract(address?: string, withSignerIfPossible?: boolean): Contract | null {
   return useContract(address, NEST_POOL_ABI, withSignerIfPossible)
+}
+
+export function useNestTokenContract(address?: string, withSignerIfPossible?: boolean): Contract | null {
+  return useContract(address, NEST_TOKEN_ABI, withSignerIfPossible)
 }
 
 export function useSocksController(): Contract | null {
