@@ -6,7 +6,7 @@ import { RowBetween } from '../Row'
 import { TYPE, CloseIcon } from '../../theme'
 import { ButtonError } from '../Button'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
-import { NewPoolInterface, useDerivedUnstakeInfo } from '../../state/nest/hooks'
+import { PoolInterface, useDerivedUnstakeInfo } from '../../state/nest/hooks'
 import { TransactionResponse } from '@ethersproject/providers'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { LoadingView, SubmittedView } from '../ModalViews'
@@ -22,7 +22,7 @@ const ContentWrapper = styled(AutoColumn)`
 interface WithdrawModalProps {
   isOpen: boolean
   onDismiss: () => void
-  poolInfo: NewPoolInterface
+  poolInfo: PoolInterface
 }
 
 export default function WithdrawModal({ isOpen, onDismiss, poolInfo }: WithdrawModalProps) {

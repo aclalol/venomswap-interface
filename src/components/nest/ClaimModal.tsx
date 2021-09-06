@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { RowBetween } from '../Row'
 import { TYPE, CloseIcon } from '../../theme'
 import { ButtonError } from '../Button'
-import { NewPoolInterface } from '../../state/nest/hooks'
+import { PoolInterface } from '../../state/nest/hooks'
 import { useNestPoolContract } from '../../hooks/useContract'
 import { SubmittedView, LoadingView } from '../ModalViews'
 import { TransactionResponse } from '@ethersproject/providers'
@@ -22,7 +22,7 @@ const ContentWrapper = styled(AutoColumn)`
 interface ClaimModalProps {
   isOpen: boolean
   onDismiss: () => void
-  poolInfo: NewPoolInterface
+  poolInfo: PoolInterface
 }
 
 export default function ClaimModal({ isOpen, onDismiss, poolInfo }: ClaimModalProps) {

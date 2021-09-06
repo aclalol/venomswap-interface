@@ -2,7 +2,7 @@ import React from 'react'
 import { AutoColumn } from '../../components/Column'
 import styled from 'styled-components'
 // import { STAKING_REWARDS_INFO } from '../../constants/staking'
-import { useNestInfo } from '../../state/nest/hooks'
+import { useNestPoolsList } from '../../state/nest/hooks'
 import { TYPE, StyledInternalLink } from '../../theme'
 import PoolCard from '../../components/nest/PoolCard'
 import { CustomButtonWhite } from '../../components/Button'
@@ -45,8 +45,8 @@ export default function Nest() {
   //   account
   // } = useActiveWeb3React()
   const activePoolsOnly = true
-  const { nestPoolsExtra } = useNestInfo(activePoolsOnly)
-  console.log('Nest Pools List: ', nestPoolsExtra)
+  const { poolsAddrs } = useNestPoolsList(activePoolsOnly)
+  console.log('Nest Pools List: ', poolsAddrs)
 
   // const stakingRewardsExist = Boolean(typeof chainId === 'number' && (STAKING_REWARDS_INFO[chainId]?.length ?? 0)
   // > 0)
@@ -103,8 +103,8 @@ export default function Nest() {
         </DataRow>
 
         <PoolSection>
-          {nestPoolsExtra.map((poolInfo: any) => (
-            <PoolCard key={poolInfo.pid} poolInfo={poolInfo} />
+          {poolsAddrs.map((addr: string) => (
+            <PoolCard key={addr} address={addr} />
           ))}
         </PoolSection>
         {/*<PoolSection>

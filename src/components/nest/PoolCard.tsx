@@ -17,7 +17,8 @@ import {
   CardNoise,
   CardBGImage
 } from './styled'
-import { ethers } from 'ethers'
+import { useSingleNestPool } from '../../state/nest/hooks'
+import { JSBI } from '@venomswap/sdk'
 // import { unwrappedToken } from '../../utils/wrappedCurrency'
 // import useBUSDPrice from '../../hooks/useBUSDPrice'
 //import useUSDCPrice from '../../utils/useUSDCPrice'
@@ -77,18 +78,21 @@ const TopSection = styled.div`
 `
 
 export default function PoolCard({
-  poolInfo,
+  // poolInfo,
+  address,
   isArchived = false
 }: // stakingInfo,
 {
-  poolInfo: any // PoolInterface
+  address: string
+  // poolInfo: PoolInterface // PoolInterface
   // stakingInfo: StakingInfo
   isArchived?: boolean
 }) {
   // const govToken = useGovernanceToken()
   // const govTokenPrice = useBUSDPrice(govToken)
   //
-  const isStaking = Boolean(poolInfo.amount.gt('0'))
+  const poolInfo = useSingleNestPool(address)
+  const isStaking = Boolean(poolInfo.sAmount.greaterThan(JSBI.BigInt(0)))
   // // const poolSharePercentage = stakingInfo.poolShare.multiply(JSBI.BigInt(100))
   //
   // // get the color of the token
@@ -107,10 +111,10 @@ export default function PoolCard({
         <DoubleCurrencyLogo size={24} />
 
         <TYPE.white fontWeight={600} fontSize={24} style={{ marginLeft: '8px' }}>
-          {`Stake: ${poolInfo.sTokenSymbol} - Earn: ${poolInfo.rTokenSymbol}`}
+          {`Stake: ${poolInfo.sToken.symbol} - Earn: ${poolInfo.rToken.symbol}`}
         </TYPE.white>
 
-        <StyledInternalLink to={`/hepa/nest/${poolInfo.pid}`} style={{ width: '100%' }}>
+        <StyledInternalLink to={`/hepa/nest/${poolInfo.poolAddress}`} style={{ width: '100%' }}>
           <ButtonPrimary padding="8px" borderRadius="8px">
             {isStaking || isArchived ? 'Manage' : 'Deposit'}
           </ButtonPrimary>
@@ -136,7 +140,7 @@ export default function PoolCard({
         <RowBetween>
           <TYPE.white>Reward per block</TYPE.white>
           <TYPE.white>
-            {ethers.utils.formatUnits(poolInfo.rewardPerBlock.toString())} {poolInfo.rTokenSymbol}
+            {poolInfo.rPerBlockAmount.toSignificant(6, { groupSeparator: ',' })} {poolInfo.rToken.symbol}
           </TYPE.white>
         </RowBetween>
 
@@ -150,14 +154,14 @@ export default function PoolCard({
         <RowBetween>
           <TYPE.white>Deposited</TYPE.white>
           <TYPE.white>
-            {ethers.utils.formatUnits(poolInfo.amount.toString())} {poolInfo.sTokenSymbol}
+            {poolInfo.sAmount.toSignificant(6, { groupSeparator: ',' })} {poolInfo.sToken.symbol}
           </TYPE.white>
         </RowBetween>
 
         <RowBetween>
-          <TYPE.white>Withdrawable Reward</TYPE.white>
+          <TYPE.white>Pending Reward</TYPE.white>
           <TYPE.white>
-            {ethers.utils.formatUnits(poolInfo.rewardDebt.toString())} {poolInfo.rTokenSymbol}
+            {poolInfo.rUnclaimedAmount.toSignificant(6, { groupSeparator: ',' })} {poolInfo.rToken.symbol}
           </TYPE.white>
         </RowBetween>
 
@@ -171,7 +175,7 @@ export default function PoolCard({
         <RowBetween>
           <TYPE.white>Limit Per User</TYPE.white>
           <TYPE.white>
-            {ethers.utils.formatUnits(poolInfo.limitPerUser.toString())} {poolInfo.sTokenSymbol}
+            {poolInfo.sLimitPerUser.toSignificant(6, { groupSeparator: ',' })} {poolInfo.sToken.symbol}
           </TYPE.white>
         </RowBetween>
 

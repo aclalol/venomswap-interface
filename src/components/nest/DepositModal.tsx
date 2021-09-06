@@ -9,7 +9,7 @@ import { ButtonConfirmed, ButtonError } from '../Button'
 import ProgressCircles from '../ProgressSteps'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
-import { NewPoolInterface, useDerivedStakeInfo } from '../../state/nest/hooks'
+import { PoolInterface, useDerivedStakeInfo } from '../../state/nest/hooks'
 import { TransactionResponse } from '@ethersproject/providers'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { LoadingView, SubmittedView } from '../ModalViews'
@@ -25,7 +25,7 @@ const ContentWrapper = styled(AutoColumn)`
 interface StakingModalProps {
   isOpen: boolean
   onDismiss: () => void
-  poolInfo: NewPoolInterface
+  poolInfo: PoolInterface
 }
 
 export default function DepositModal({ isOpen, onDismiss, poolInfo }: StakingModalProps) {
