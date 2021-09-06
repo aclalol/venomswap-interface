@@ -18,7 +18,7 @@ const LoaderWrapper = styled.div`
   right: 0;
   bottom: 0;
   top: 0;
-  background-color: black;
+  background: radial-gradient(76.02% 75.41% at 1.84% 0%, #001d4c 0%, #000024 100%);
   opacity: 1;
   z-index: 10;
 `
