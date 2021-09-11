@@ -11,6 +11,7 @@ import { OutlineCard } from '../../components/Card'
 import { ZERO_ADDRESS } from '../../constants'
 import { useParams } from 'react-router-dom'
 import { useActiveWeb3React } from '../../hooks'
+import { Fraction, JSBI } from '@venomswap/sdk'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -41,7 +42,8 @@ export default function Nest() {
   const isArchived = React.useMemo(() => type === 'archive', [type])
   const [archivedPools, setArchivedPools] = React.useState<any>({})
   const [activePools, setActivePools] = React.useState<any>({})
-  const { shownArr, shownObj, handleSetPoolType } = React.useMemo(() => {
+  const [tvls, setTvl] = React.useState<any>({})
+  const { shownArr, shownObj, handleSetPoolType, handleSetPoolTvl } = React.useMemo((): any => {
     const archivedPoolsArr = Object.keys(archivedPools)
     const activePoolsArr = Object.keys(activePools)
     const poolsAddrsObj = poolsAddrs.reduce((acc, addr) => {
@@ -51,20 +53,41 @@ export default function Nest() {
       }
     }, {})
 
-    const handleSetPoolType = (addr: string, isActive: boolean, pool: PoolInterface) => {
+    const _handleSetPoolType = (addr: string, isActive: boolean, pool: PoolInterface) => {
       if (addr === ZERO_ADDRESS) return
 
       if (!isActive && !archivedPools[addr]) setArchivedPools({ ...archivedPools, [addr]: pool })
       if (isActive && !activePools[addr]) setActivePools({ ...activePools, [addr]: pool })
     }
+    const _handleSetPoolTvl = (addr: string, tvl: Fraction) => {
+      setTvl({ ...tvls, [addr]: tvl })
+    }
 
     if (archivedPoolsArr.length + activePoolsArr.length < poolsAddrs.length)
-      return { shownArr: poolsAddrs, shownObj: poolsAddrsObj, handleSetPoolType }
+      return {
+        shownArr: poolsAddrs,
+        shownObj: poolsAddrsObj,
+        handleSetPoolType: _handleSetPoolType,
+        handleSetPoolTvl: _handleSetPoolTvl
+      }
 
     return isArchived
-      ? { shownArr: archivedPoolsArr, shownObj: archivedPools, handleSetPoolType }
-      : { shownArr: activePoolsArr, shownObj: activePools, handleSetPoolType }
-  }, [poolsAddrs, isArchived, archivedPools, activePools, setActivePools, setArchivedPools])
+      ? {
+          shownArr: archivedPoolsArr,
+          shownObj: archivedPools,
+          handleSetPoolType: _handleSetPoolType,
+          handleSetPoolTvl: _handleSetPoolTvl
+        }
+      : {
+          shownArr: activePoolsArr,
+          shownObj: activePools,
+          handleSetPoolType: _handleSetPoolType,
+          handleSetPoolTvl: _handleSetPoolTvl
+        }
+  }, [poolsAddrs, isArchived, archivedPools, activePools, setActivePools, tvls, setTvl, setArchivedPools])
+  const totalNestTvl = Object.values(tvls).reduce((totalTvl: any, i: any) => {
+    return totalTvl.add(i)
+  }, new Fraction(JSBI.BigInt(0))) as any
   const assets = React.useMemo(() => {
     const activePoolsCount = Object.keys(activePools).length
     const archivedPoolsCount = Object.keys(archivedPools).length
@@ -112,14 +135,13 @@ export default function Nest() {
       <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
         <DataRow style={{ alignItems: 'baseline' }}>
           <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>HepaNest</TYPE.mediumHeader>
-          {/*{TVLs?.stakingPoolTVL?.greaterThan('0') && (
+          {totalNestTvl && (
             <TYPE.black style={{ marginTop: '0.5rem' }}>
               <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                🏆
+                🏆 TVL: ${totalNestTvl.toSignificant(6, { groupSeparator: ',' })}
               </span>
-              <CombinedTVL />
             </TYPE.black>
-          )}*/}
+          )}
         </DataRow>
 
         <PoolSection>
@@ -128,7 +150,14 @@ export default function Nest() {
               {shownArr.length !== 0 ? (
                 <>
                   {shownArr.map((addr: string) => (
-                    <PoolCard key={addr} address={addr} pool={shownObj[addr]} handleSetPoolType={handleSetPoolType} />
+                    <PoolCard
+                      key={addr}
+                      tvls={tvls}
+                      address={addr}
+                      pool={shownObj[addr]}
+                      handleSetPoolType={handleSetPoolType}
+                      handleSetPoolTvl={handleSetPoolTvl}
+                    />
                   ))}
                 </>
               ) : (

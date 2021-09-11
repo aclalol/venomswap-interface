@@ -1,23 +1,21 @@
-import { useMemo } from 'react'
-import { Fraction } from '@venomswap/sdk'
-
+import { Fraction, JSBI } from '@venomswap/sdk'
 import { utils } from 'ethers'
 import usePitToken from './usePitToken'
 import { useTokenBalance } from '../state/wallet/hooks'
 import useGovernanceToken from 'hooks/useGovernanceToken'
 import { useTotalSupply } from '../data/TotalSupply'
 
-export default function usePitRatio(): Fraction | undefined {
-  const govToken = useGovernanceToken() // Hepa
-  const pit = usePitToken() // xHepa
-  const pitTotalSupply = useTotalSupply(pit) //
-  const pitGovTokenBalance = useTokenBalance(pit?.address, govToken)
-
+export default function usePitRatio(): Fraction {
+  const govToken = useGovernanceToken() // HEPA
+  const pit = usePitToken() // xHEPA
+  const pitTotalSupply = useTotalSupply(pit) // xHEPA
+  const pitGovTokenBalance = useTokenBalance(pit?.address, govToken) // HEPA
   const multiplier = utils.parseEther('1').toString()
 
-  return useMemo(() => {
-    return pitGovTokenBalance && pitTotalSupply
+  const pitRatio =
+    pitGovTokenBalance && pitTotalSupply
       ? pitGovTokenBalance?.divide(pitTotalSupply?.raw.toString()).multiply(multiplier)
-      : undefined
-  }, [govToken, pit, pitTotalSupply, pitGovTokenBalance])
+      : new Fraction(JSBI.BigInt(0), JSBI.BigInt(0))
+
+  return pitRatio
 }

@@ -169,10 +169,10 @@ export default function Pit() {
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
           <NonCenteredDataRow style={{ alignItems: 'baseline' }}>
             <TYPE.mediumHeader></TYPE.mediumHeader>
-            {TVLs?.stakingPoolTVL?.greaterThan('0') && (
+            {TVLs?.totalPitTVL?.greaterThan('0') && (
               <TYPE.black>
                 <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                  🏆 TODO
+                  🏆 TVL: ${TVLs?.totalPitTVL?.toSignificant(6, { groupSeparator: ',' })}
                 </span>
                 <CombinedTVL />
               </TYPE.black>

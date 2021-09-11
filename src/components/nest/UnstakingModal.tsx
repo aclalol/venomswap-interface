@@ -76,7 +76,7 @@ export default function UnstakingModal({ isOpen, onDismiss, stakingInfo }: Staki
   if (!stakingInfo?.stakedAmount) {
     error = error ?? 'Enter an amount'
   }
-  // TODO Input + simplify (like pit withdraw)
+
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>
       {!attempting && !hash && !failed && (

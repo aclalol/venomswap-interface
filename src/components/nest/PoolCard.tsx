@@ -6,7 +6,7 @@ import { TYPE, StyledInternalLink } from '../../theme'
 import { ButtonPrimary } from '../Button'
 import { Break, CardNoise, CardBGImage } from './styled'
 import { PoolInterface, useSingleNestPool } from '../../state/nest/hooks'
-import { JSBI } from '@venomswap/sdk'
+import { Fraction, JSBI } from '@venomswap/sdk'
 import { useBlockNumber } from '../../state/application/hooks'
 import Loader from '../Loader'
 import { useColor } from '../../hooks/useColor'
@@ -68,11 +68,15 @@ const TopSection = styled.div`
 export default function PoolCard({
   address,
   handleSetPoolType,
-  pool
+  handleSetPoolTvl,
+  pool,
+  tvls
 }: {
   address: string
   handleSetPoolType: (addr: string, isActive: boolean, pool: PoolInterface) => void
+  handleSetPoolTvl: (addr: string, tvl: Fraction) => void
   pool: PoolInterface | undefined
+  tvls: any
 }) {
   const poolInfo = useSingleNestPool(address, pool)
   const latestBlockNumber = useBlockNumber()
@@ -84,7 +88,12 @@ export default function PoolCard({
     [poolInfo, latestBlockNumber]
   )
   React.useEffect(() => {
-    if (poolInfo.isLoad && !pool) handleSetPoolType(poolInfo.poolAddress, isActive, poolInfo)
+    if (poolInfo.isLoad && !pool) {
+      handleSetPoolType(poolInfo.poolAddress, isActive, poolInfo)
+    }
+    if (poolInfo.isLoadTvl && pool && !tvls[pool.poolAddress]) {
+      handleSetPoolTvl(poolInfo.poolAddress, poolInfo.tvl)
+    }
   }, [poolInfo, handleSetPoolType])
   const backgroundColor = useColor(poolInfo?.sToken)
 
@@ -135,7 +144,11 @@ export default function PoolCard({
         <Break />
         <RowBetween>
           <TYPE.white>APR</TYPE.white>
-          <TYPE.white>{JSBI.divide(poolInfo.apr, JSBI.BigInt(100))}%</TYPE.white>
+          <TYPE.white>
+            {poolInfo.apr.greaterThan(new Fraction(JSBI.BigInt(0)))
+              ? `${poolInfo.apr.divide(new Fraction(JSBI.BigInt(100))).toSignificant(6, { groupSeparator: ',' })}%`
+              : '--'}
+          </TYPE.white>
         </RowBetween>
         <RowBetween>
           <TYPE.white>Total deposited</TYPE.white>

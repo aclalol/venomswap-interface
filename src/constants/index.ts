@@ -56,7 +56,7 @@ export const GOVERNANCE_TOKEN: { [chainId in ChainId]: Token } = {
   ),
   [ChainId.BSC_TESTNET]: new Token(
     ChainId.BSC_TESTNET,
-    '0xba638f51052b655380E6ea8e857f42b39344ADc7',
+    '0x8e9Fe3b203e71E3E2Dd910ECc53B9E89a28F0D9E',
     18,
     'HEPA',
     'Hepa'

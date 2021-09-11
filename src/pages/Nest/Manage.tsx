@@ -103,7 +103,7 @@ export default function Manage() {
           <AutoColumn gap="sm">
             <TYPE.body style={{ margin: 0 }}>Total Deposits</TYPE.body>
             <TYPE.body fontSize={24} fontWeight={500}>
-              {poolInfo.sAllAmount?.toSignificant(6, { groupSeparator: ',' })} {poolInfo.sToken?.symbol}
+              $ {poolInfo.totalDeposits?.toSignificant(6, { groupSeparator: ',' })}
             </TYPE.body>
           </AutoColumn>
         </PoolData>
@@ -145,7 +145,7 @@ export default function Manage() {
                 </RowBetween>
                 <RowBetween style={{ alignItems: 'baseline' }}>
                   <TYPE.white fontSize={36} fontWeight={600}>
-                    {poolInfo.sAmount?.toSignificant(6) ?? '-'}
+                    {poolInfo.sAmount?.toSignificant(6, { groupSeparator: ',' }) ?? '-'}
                   </TYPE.white>
                   <TYPE.white>{poolInfo.sToken?.symbol}</TYPE.white>
                 </RowBetween>
@@ -213,7 +213,8 @@ export default function Manage() {
         </DataRow>
 
         <TYPE.main>
-          You have {poolInfo.sFreeAmount.toSignificant(6)} {poolInfo.sToken.symbol} tokens available to deposit
+          You have {poolInfo.sFreeAmount.toSignificant(6, { groupSeparator: ',' })} {poolInfo.sToken.symbol} tokens
+          available to deposit
         </TYPE.main>
       </Body>
     </PageWrapper>
