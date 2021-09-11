@@ -12,6 +12,7 @@ export default function usePitRatio(): Fraction | undefined {
   const pit = usePitToken() // xHepa
   const pitTotalSupply = useTotalSupply(pit) //
   const pitGovTokenBalance = useTokenBalance(pit?.address, govToken)
+
   const multiplier = utils.parseEther('1').toString()
 
   return useMemo(() => {

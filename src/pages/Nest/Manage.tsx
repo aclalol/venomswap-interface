@@ -13,7 +13,7 @@ import usePrevious from '../../hooks/usePrevious'
 import { AutoColumn } from '../../components/Column'
 import DoubleCurrencyLogo from '../../components/DoubleLogo'
 import { RowBetween } from '../../components/Row'
-import { ButtonPrimary, ButtonEmpty } from '../../components/Button'
+import { ButtonPrimary } from '../../components/Button'
 
 import AwaitingRewards from '../../components/nest/AwaitingRewards'
 import DepositModal from '../../components/nest/DepositModal'
@@ -160,18 +160,6 @@ export default function Manage() {
                 <div>
                   <TYPE.black>Your unclaimed {poolInfo.rToken?.symbol}</TYPE.black>
                 </div>
-                {poolInfo?.rUnclaimedAmount && poolInfo?.rUnclaimedAmount.equalTo(JSBI.BigInt(0)) && (
-                  <ButtonEmpty
-                    padding="8px"
-                    borderRadius="8px"
-                    width="fit-content"
-                    onClick={() => {
-                      console.log('kek')
-                    }}
-                  >
-                    Claim
-                  </ButtonEmpty>
-                )}
               </RowBetween>
               <RowBetween style={{ alignItems: 'baseline' }}>
                 <TYPE.largeHeader fontSize={36} fontWeight={600}>

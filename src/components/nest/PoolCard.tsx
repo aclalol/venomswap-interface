@@ -9,6 +9,7 @@ import { PoolInterface, useSingleNestPool } from '../../state/nest/hooks'
 import { JSBI } from '@venomswap/sdk'
 import { useBlockNumber } from '../../state/application/hooks'
 import Loader from '../Loader'
+import { useColor } from '../../hooks/useColor'
 
 const LoaderWrapper = styled.div`
   position: absolute;
@@ -85,9 +86,10 @@ export default function PoolCard({
   React.useEffect(() => {
     if (poolInfo.isLoad && !pool) handleSetPoolType(poolInfo.poolAddress, isActive, poolInfo)
   }, [poolInfo, handleSetPoolType])
+  const backgroundColor = useColor(poolInfo?.sToken)
 
   return (
-    <Wrapper showBackground={!poolInfo.isLoad}>
+    <Wrapper showBackground={!poolInfo.isLoad && isStaking} bgColor={backgroundColor}>
       {!poolInfo.isLoad && (
         <>
           <LoaderWrapper />
@@ -133,7 +135,7 @@ export default function PoolCard({
         <Break />
         <RowBetween>
           <TYPE.white>APR</TYPE.white>
-          <TYPE.white>100%</TYPE.white>
+          <TYPE.white>{JSBI.divide(poolInfo.apr, JSBI.BigInt(100))}%</TYPE.white>
         </RowBetween>
         <RowBetween>
           <TYPE.white>Total deposited</TYPE.white>

@@ -89,6 +89,7 @@ export const MASTER_BREEDER: { [chainId in ChainId]: string } = {
   [ChainId.HARMONY_TESTNET]: '0xd3260Bdec435b0E4388622DE6d16d7ef3Fcd1F9f'
 }
 
+export const MASTER_NEST_BIRTHDAY = 12109500 // BSC_TESTNET
 export const MASTER_NEST: { [chainId in ChainId]: string } = {
   [ChainId.MAINNET]: ZERO_ONE_ADDRESS,
   [ChainId.RINKEBY]: ZERO_ONE_ADDRESS,
@@ -97,6 +98,18 @@ export const MASTER_NEST: { [chainId in ChainId]: string } = {
   [ChainId.KOVAN]: ZERO_ONE_ADDRESS,
   [ChainId.BSC_MAINNET]: ZERO_ONE_ADDRESS,
   [ChainId.BSC_TESTNET]: '0x018B65f7777ACdDabA08e8542fDc0C2dD11045C6',
+  [ChainId.HARMONY_MAINNET]: ZERO_ONE_ADDRESS,
+  [ChainId.HARMONY_TESTNET]: ZERO_ONE_ADDRESS
+}
+// TODO BSC_MAINNET
+export const PANCAKE_FACTORY: { [chainId in ChainId]: string } = {
+  [ChainId.MAINNET]: ZERO_ONE_ADDRESS,
+  [ChainId.RINKEBY]: ZERO_ONE_ADDRESS,
+  [ChainId.ROPSTEN]: ZERO_ONE_ADDRESS,
+  [ChainId.GÖRLI]: ZERO_ONE_ADDRESS,
+  [ChainId.KOVAN]: ZERO_ONE_ADDRESS,
+  [ChainId.BSC_MAINNET]: ZERO_ONE_ADDRESS,
+  [ChainId.BSC_TESTNET]: '0x6725F303b657a9451d8BA641348b6761A6CC7a17',
   [ChainId.HARMONY_MAINNET]: ZERO_ONE_ADDRESS,
   [ChainId.HARMONY_TESTNET]: ZERO_ONE_ADDRESS
 }
@@ -120,7 +133,13 @@ export const PIT: { [chainId in ChainId]: Token } = {
   [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.KOVAN]: new Token(ChainId.KOVAN, '0x0684DAd6eE76cFc2CFF3861f9D35798758561913', 18, 'xHEPA', 'HepaPit'),
   [ChainId.BSC_MAINNET]: new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
-  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_TESTNET]: new Token(
+    ChainId.BSC_TESTNET,
+    '0x4C36C2b8a5F4Edbb8FD65E60FD51dC499a133d3a',
+    18,
+    'xHEPA',
+    'HepaPit'
+  ),
   [ChainId.HARMONY_MAINNET]: new Token(ChainId.HARMONY_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit')
 }
@@ -132,7 +151,13 @@ export const PIT_STAKING: { [chainId in ChainId]: Token } = {
   [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.KOVAN]: new Token(ChainId.KOVAN, '0x7AAB1C2577e093801f714fBEBD6EC6538a9c3Bf7', 18, 'xHEPA', 'HepaPit'),
   [ChainId.BSC_MAINNET]: new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
-  [ChainId.BSC_TESTNET]: new Token(ChainId.BSC_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
+  [ChainId.BSC_TESTNET]: new Token(
+    ChainId.BSC_TESTNET,
+    '0x6F3215FEB6234eC21EaA763A91E9874Ba0C11dfA',
+    18,
+    'xHEPA',
+    'HepaPit'
+  ),
   [ChainId.HARMONY_MAINNET]: new Token(ChainId.HARMONY_MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit'),
   [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'HepaPit')
 }
@@ -249,6 +274,13 @@ export const BTCB = new Token(
 export const HEPA = new Token(
   ChainId.BSC_MAINNET,
   '0x9159F30F1c3F0317b0a2D6bC176f29266Be790eE',
+  18,
+  'HEPA',
+  'Hepa Token'
+)
+export const THEPA = new Token(
+  ChainId.BSC_TESTNET,
+  '0x8e9Fe3b203e71E3E2Dd910ECc53B9E89a28F0D9E',
   18,
   'HEPA',
   'Hepa Token'

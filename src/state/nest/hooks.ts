@@ -1,36 +1,28 @@
 import React, { useState } from 'react'
-import { abi as IUniswapV2PairABI } from '@venomswap/core/build/IUniswapV2Pair.json'
-import { CurrencyAmount, JSBI, Token, TokenAmount, ChainId, Fraction } from '@venomswap/sdk'
+import { CurrencyAmount, JSBI, Token, TokenAmount, ChainId } from '@venomswap/sdk'
 import { Interface } from '@ethersproject/abi'
 import { useActiveWeb3React } from '../../hooks'
 import { tryParseAmount } from '../swap/hooks'
-import { useMasterBreederContract, useMasterNestContract } from '../../hooks/useContract'
-import { useMultipleContractSingleData } from '../multicall/hooks'
+import { useMasterNestContract, usePancakeFactoryContract, usePancakePair } from '../../hooks/useContract'
+import { useMultipleContractSingleData, useSingleCallResult } from '../multicall/hooks'
 import { ethers } from 'ethers'
 import NEST_POOL_ABI from '../../constants/abis/nest-pool.json'
 import NEST_TOKEN_ABI from '../../constants/abis/nest-token.json'
 import usePrevious from '../../hooks/usePrevious'
-import { ZERO_ADDRESS } from '../../constants'
-import calculateApr from '../../utils/calculateApr'
-import calculateWethAdjustedTotalStakedAmount from '../../utils/calculateWethAdjustedTotalStakedAmount'
-import determineBaseToken from '../../utils/determineBaseToken'
-import useTokensWithWethPrices from '../../hooks/useTokensWithWETHPrices'
-import { getPairInstance } from '../../utils'
+import { MASTER_NEST_BIRTHDAY, TBUSD, ZERO_ADDRESS, ZERO_ONE_ADDRESS } from '../../constants'
 import getBlocksPerYear from '../../utils/getBlocksPerYear'
 import { validNestPoolInfo, validExtraNestPoolInfo } from '../../utils/validNestPoolInfo'
-// import getBlocksPerYear from '../../utils/getBlocksPerYear'
-// import calculateApr from '../../utils/calculateApr'
-
-const PAIR_INTERFACE = new Interface(IUniswapV2PairABI)
+import { useBlockNumber } from '../application/hooks'
 
 const POOL_INTERFACE = new Interface(NEST_POOL_ABI)
 const TOKEN_INTERFACE = new Interface(NEST_TOKEN_ABI)
 
 const DEFAULT_BN = JSBI.BigInt(0)
-const DEFAULT_TOKEN = new Token(ChainId.BSC_MAINNET, ZERO_ADDRESS, 18, 'HEPA', 'Hepa')
+const DEFAULT_TOKEN = new Token(ChainId.BSC_MAINNET, ZERO_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
+const DEFAULT_TOKEN_A = new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
 const DEFAULT_AMOUNT = new TokenAmount(DEFAULT_TOKEN, JSBI.BigInt(0))
 const NEW_DEFAULT_POOL = {
-  poolAddress: ZERO_ADDRESS, // pid -> poolAddress
+  poolAddress: ZERO_ONE_ADDRESS, // pid -> poolAddress
 
   startBlock: DEFAULT_BN, // bn
   lastRewardBlock: DEFAULT_BN, // bn
@@ -40,10 +32,12 @@ const NEW_DEFAULT_POOL = {
   _sLimitPerUser: DEFAULT_BN, // staking bn
   _sAmount: DEFAULT_BN, // staking user.amount bn
 
-  _rTokenAddress: ZERO_ADDRESS, // string
+  _rTokenAddress: ZERO_ONE_ADDRESS, // string
   _rPerBlock: DEFAULT_BN, // reward rewardPerBlock
   _rDebt: DEFAULT_BN, // reward user.rewardDebt bn
   _rPending: DEFAULT_BN, // reward pendingReward bn
+
+  _cStakedBalanceOf: DEFAULT_BN, // pool total staked (balance of)
 
   // chaindId, _sTokenAddress, _sTokenDecimals, _sTokenSymbol, _sTokenName
   sToken: DEFAULT_TOKEN,
@@ -52,10 +46,12 @@ const NEW_DEFAULT_POOL = {
   sFreeAmount: DEFAULT_AMOUNT, // staking user balance of .balanceOf(sToken)
   sAllAmount: DEFAULT_AMOUNT, // staking pool contract balance of .balanceOf(sToken)
 
-  rToken: DEFAULT_TOKEN, // chaindId, _rTokenAddress, _rTokenDecimals, _rTokenSymbol, _rTokenName
+  rToken: DEFAULT_TOKEN_A, // chaindId, _rTokenAddress, _rTokenDecimals, _rTokenSymbol, _rTokenName
   rPerBlockAmount: DEFAULT_AMOUNT, // reward BN(user._rewardPerBlock)
   rClaimedAmount: DEFAULT_AMOUNT, // reward BN(user._rewardDebt)
   rUnclaimedAmount: DEFAULT_AMOUNT, // reward BN(user._pendingReward)
+
+  apr: DEFAULT_BN,
 
   isLoad: false
 }
@@ -76,6 +72,8 @@ export interface PoolInterface {
   _rDebt: JSBI // reward user.rewardDebt bn
   _rPending: JSBI // reward pendingReward bn
 
+  _cStakedBalanceOf: JSBI // all staked amount in pool
+
   sToken: Token // chaindId, _sTokenAddress, _sTokenDecimals, _sTokenSymbol, _sTokenName
   sAmount: TokenAmount // staking BN(user._stakedAmount)
   sLimitPerUser: TokenAmount // staking BN(user._limitPerUser)
@@ -87,81 +85,115 @@ export interface PoolInterface {
   rClaimedAmount: TokenAmount // reward BN(user._rewardDebt)
   rUnclaimedAmount: TokenAmount // reward BN(user._pendingReward)
 
+  apr: JSBI
+
   isLoad: boolean
 }
 
 export function useNestPoolsAddrsList(): Array<string> {
   const masterNestContract = useMasterNestContract()
   const [poolsAddrs, setPoolsAddrs] = useState<Array<string>>([])
+  const latestBlockNumber = useBlockNumber() ?? 0
+
   React.useEffect(() => {
     async function getNestList() {
-      // TODO important load all events (from, to)
-      // "exceed maximum block range: 5000"
-      const res: any = await masterNestContract?.queryFilter(
-        {
-          address: masterNestContract?.address,
-          topics: [ethers.utils.id('NewSmartChefContract(address)')]
-        },
-        12109559,
-        12109559 + 4999
-      )
-      // console.log('nest res: ', res)
-      const addrs = res.map((i: any) => i?.args?.[0]) ?? []
+      const promises = []
+      const birthBlock = MASTER_NEST_BIRTHDAY
+      let bb = birthBlock
+      while (bb >= birthBlock && bb < latestBlockNumber) {
+        if (bb + 5000 < latestBlockNumber) {
+          bb = bb + 5000
+        } else {
+          bb = latestBlockNumber
+        }
+
+        const promis: any = masterNestContract?.queryFilter(
+          {
+            address: masterNestContract?.address,
+            topics: [ethers.utils.id('NewSmartChefContract(address)')]
+          },
+          bb - 5000, // from
+          bb // to
+        )
+        promises.push(promis)
+      }
+      const events = await Promise.all(promises)
+      const addrs =
+        events.reduce((acc: any, i: any) => {
+          if (i.length !== 0) {
+            i.forEach((event: any) => {
+              acc.push(event.args[0])
+            })
+          }
+          return acc
+        }, []) ?? []
+      console.log('pool contracts addresses: ', addrs)
       setPoolsAddrs(addrs)
     }
 
     getNestList()
-  }, [])
+  }, [latestBlockNumber])
 
   return poolsAddrs
 }
 
-function useNestPoolApr(sToken: Token, rToken: Token, rPerBlockAmount: TokenAmount, _rPerBlock: JSBI) {
-  const { chainId = 97 } = useActiveWeb3React() // TODO fix it
-  const blocksPerYear = getBlocksPerYear(chainId)
-  const masterBreederContract = useMasterBreederContract()
+export function useApr(poolInfo: PoolInterface) {
+  const { chainId } = useActiveWeb3React()
+  const blocksPerYear = React.useMemo(() => {
+    const bPY = getBlocksPerYear(chainId)
+    return JSBI.BigInt(bPY)
+  }, [chainId])
+  // Метод getPair
+  // Чтобы брать пары с BNB, одним из адресов указывается WETH -
+  // https://testnet.bscscan.com/address/0xae13d989dac2f0debff460ac112a837c89baa7cd
 
-  const tokensWithPrices = useTokensWithWethPrices()
-  const govToken = tokensWithPrices?.govToken?.token
-  const govTokenWETHPrice = tokensWithPrices?.govToken?.price
-  const tokensAddreses = [sToken.address, rToken.address]
-  const baseToken = determineBaseToken(tokensWithPrices, [sToken, rToken])
-  console.info('baseToken: ', baseToken)
-  const lpTokenTotalSupplies = useMultipleContractSingleData(tokensAddreses, PAIR_INTERFACE, 'totalSupply')
-  const lpTokenReserves = useMultipleContractSingleData(tokensAddreses, PAIR_INTERFACE, 'getReserves')
-  const lpTokenBalances = useMultipleContractSingleData(tokensAddreses, PAIR_INTERFACE, 'balanceOf', [
-    masterBreederContract?.address
+  // Через панкейк фактори https://testnet.bscscan.com/address/0x6725f303b657a9451d8ba641348b6761a6cc7a17
+
+  /*
+  Берем контракт пары ABC / BNB
+  (не факт что он уже существует, тогда надо через тестовый панкейк залить ликвидку и создать пару)
+  В нем есть метод getReserves, который возвращает резервы.
+  Допустим в резервах 10000 ABC и 100 BNB. Получаем цену 0.01 BNB за ABC.
+  Дальше, если нам надо в USD выразить цену, то можно либо также через панкейк через пару,
+  например, BNB / BUSD, либо через Chainlink price feed получить цену BNB
+*/
+  const pancakeFactoryContract = usePancakeFactoryContract()
+  const sTokenBUSDPairAddress = useSingleCallResult(pancakeFactoryContract, 'getPair', [
+    '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd',
+    // poolInfo.sToken.address, // TODO
+    TBUSD.address // TODO BUSD for mainnet
   ])
-  console.info(lpTokenTotalSupplies, lpTokenReserves, lpTokenBalances)
+  const rTokenBUSDPairAddress = useSingleCallResult(pancakeFactoryContract, 'getPair', [
+    '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd',
+    // poolInfo.rToken.address, // TODO
+    TBUSD.address // TODO BUSD for mainnet
+  ])
+  // console.log('[APR] sTokenBUSDPairAddress: ', poolInfo.sToken.address, sTokenBUSDPairAddress?.result?.[0])
+  // console.log('[APR] rTokenBUSDPairAddress: ', poolInfo.rToken.address, rTokenBUSDPairAddress?.result?.[0])
+  const sBTokenPancakePairContract = usePancakePair(sTokenBUSDPairAddress?.result?.[0])
+  const sBReserves = useSingleCallResult(sBTokenPancakePairContract, 'getReserves')?.result
+  const rBTokenPancakePairContract = usePancakePair(rTokenBUSDPairAddress?.result?.[0])
+  const rBReserves = useSingleCallResult(rBTokenPancakePairContract, 'getReserves')?.result
+  // console.log('[APR] sBReserves: ', sBReserves?.[0].toString(), sBReserves?.[1].toString(), sBReserves)
+  // console.log('[APR] rBReserves: ', rBReserves?.[0].toString(), sBReserves?.[1].toString(), rBReserves)
+  if (sBReserves && rBReserves && sBReserves?.[1].toString() !== '0' && rBReserves?.[1].toString() !== '0') {
+    const sPriceInBUSD = JSBI.BigInt(sBReserves?.[0].div(sBReserves?.[1]))
+    const rPriceInBUSD = JSBI.BigInt(rBReserves?.[0].div(rBReserves?.[1]))
+    const yearProfit = JSBI.multiply(poolInfo._rPerBlock, blocksPerYear)
 
-  const poolBlockRewards = new TokenAmount(govToken, _rPerBlock)
-  const poolShare = new Fraction(poolBlockRewards.raw, rPerBlockAmount.raw)
-  console.info('poolBlockRewards: ', poolBlockRewards)
-  console.info('poolShare: ', poolShare)
-  const dummyPair = getPairInstance(new TokenAmount(sToken, '0'), new TokenAmount(rToken, '0'))
-  console.info('dummyPair: ', dummyPair)
-  const totalLpTokenSupply = new TokenAmount(
-    dummyPair.liquidityToken,
-    JSBI.BigInt(lpTokenTotalSupplies[0].result?.[0] ?? 0)
-  )
-  const totalStakedAmount = new TokenAmount(dummyPair.liquidityToken, JSBI.BigInt(lpTokenBalances[0].result?.[0] ?? 0))
-  const lpTokenReserve = lpTokenReserves[0].result
+    const totalRewardPricePerYear = JSBI.multiply(rPriceInBUSD, yearProfit)
+    const totalStakingTokenInPool = JSBI.multiply(sPriceInBUSD, poolInfo._cStakedBalanceOf)
 
-  const totalStakedAmountWETH = calculateWethAdjustedTotalStakedAmount(
-    chainId,
-    baseToken,
-    tokensWithPrices,
-    [sToken, rToken],
-    totalLpTokenSupply,
-    totalStakedAmount,
-    lpTokenReserve
-  )
+    const apr =
+      totalStakingTokenInPool.toString() === '0'
+        ? DEFAULT_BN
+        : JSBI.divide(totalRewardPricePerYear, totalStakingTokenInPool)
 
-  return totalStakedAmountWETH
-    ? calculateApr(govTokenWETHPrice, poolBlockRewards, blocksPerYear, poolShare, totalStakedAmountWETH)
-    : undefined
+    return apr
+  }
+
+  return DEFAULT_BN
 }
-console.log('useNestPoolApr: ', useNestPoolApr)
 
 export function useSingleNestPool(address: string, defaultPool?: PoolInterface | undefined): PoolInterface {
   const { account, chainId } = useActiveWeb3React()
@@ -169,7 +201,6 @@ export function useSingleNestPool(address: string, defaultPool?: PoolInterface |
   const prevPool = usePrevious(pool) ?? undefined
   const [nestPool, setNestPool] = useState<PoolInterface>({ ...NEW_DEFAULT_POOL })
   const prevNestPool = usePrevious(nestPool) ?? undefined
-
   const poolUserInfos = useMultipleContractSingleData([address], POOL_INTERFACE, 'userInfo', [account ?? undefined])
   const poolRewardToken = useMultipleContractSingleData([address], POOL_INTERFACE, 'rewardToken')
   const poolStakedToken = useMultipleContractSingleData([address], POOL_INTERFACE, 'stakedToken')
@@ -292,6 +323,7 @@ export function useSingleNestPool(address: string, defaultPool?: PoolInterface |
 
       const newNestPool = {
         ...pool,
+        _cStakedBalanceOf: cStakedBalanceOf,
         sToken,
         sAmount,
         sLimitPerUser,
@@ -310,10 +342,12 @@ export function useSingleNestPool(address: string, defaultPool?: PoolInterface |
     }
   }, [pool, prevNestPool, tokensSymbols, tokensBalanceOf])
 
-  // const apr = useNestPoolApr(nestPool.sToken, nestPool.rToken, nestPool.rPerBlockAmount, nestPool._rPerBlock)
-  // console.info('apr: ', apr)
+  const poolApr = useApr(nestPool)
 
-  return nestPool
+  return {
+    ...nestPool,
+    apr: poolApr
+  }
 }
 
 // based on typed value
@@ -378,15 +412,3 @@ export function useDerivedUnstakeInfo(
     error
   }
 }
-// https://github.com/pancakeswap/pancake-frontend/blob/5bc14994d8cd1334adb48acf0c40a2e68162c64b/src/utils/apr.ts#L12-L22
-// export const getPoolApr = (
-//   stakingTokenPrice: number,
-//   rewardTokenPrice: number,
-//   totalStaked: number,
-//   tokenPerBlock: number
-// ): number => {
-//   const totalRewardPricePerYear = new BigNumber(rewardTokenPrice).times(tokenPerBlock).times(BLOCKS_PER_YEAR)
-//   const totalStakingTokenInPool = new BigNumber(stakingTokenPrice).times(totalStaked)
-//   const apr = totalRewardPricePerYear.div(totalStakingTokenInPool).times(100)
-//   return apr.isNaN() || !apr.isFinite() ? null : apr.toNumber()
-// }

@@ -15,10 +15,13 @@ import {
   PIT,
   PIT_BREEDER,
   PIT_STAKING,
-  MASTER_NEST
+  MASTER_NEST,
+  PANCAKE_FACTORY
 } from '../constants'
 import { abi as MASTER_BREEDER_ABI } from '../constants/abis/MasterHepa.json'
 import MASTER_NEST_ABI from '../constants/abis/nest.json'
+import PANCAKE_FACTORY_ABI from '../constants/abis/pancake-factory.json'
+import PANCAKE_PAIR_ABI from '../constants/abis/pancake-pair.json'
 import NEST_POOL_ABI from '../constants/abis/nest-pool.json'
 import NEST_TOKEN_ABI from '../constants/abis/nest-token.json'
 import { abi as GOVERNANCE_TOKEN_ABI } from '../constants/abis/HepaToken.json'
@@ -167,6 +170,16 @@ export function useMasterNestContract(withSignerIfPossible?: boolean): Contract 
   const { chainId } = useActiveWeb3React()
   const address = chainId && MASTER_NEST[chainId]
   return useContract(address, MASTER_NEST_ABI, withSignerIfPossible)
+}
+
+export function usePancakeFactoryContract(withSignerIfPossible?: boolean): Contract | null {
+  const { chainId } = useActiveWeb3React()
+  const address = chainId && PANCAKE_FACTORY[chainId]
+  return useContract(address, PANCAKE_FACTORY_ABI, withSignerIfPossible)
+}
+
+export function usePancakePair(address?: string, withSignerIfPossible?: boolean): Contract | null {
+  return useContract(address, PANCAKE_PAIR_ABI, withSignerIfPossible)
 }
 
 export function useNestPoolContract(address?: string, withSignerIfPossible?: boolean): Contract | null {
