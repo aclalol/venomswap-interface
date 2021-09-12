@@ -26,7 +26,10 @@ export default function usePitTVL(): Fraction | undefined {
   const hepaWbnbPairContract = usePancakePair(hepaWbnbPairAddress?.result?.[0])
   const hepaWbnbReserves = useSingleCallResult(hepaWbnbPairContract, 'getReserves')?.result
 
-  const hepaInWbnbPrice = new Fraction(hepaWbnbReserves?.[1], hepaWbnbReserves?.[0]) // JSBI.BigInt(hepaWbnbReserves?.[0].div(hepaWbnbReserves?.[1]) ?? 1)
+  let hepaInWbnbPrice = new Fraction(JSBI.BigInt(0), JSBI.BigInt(0))
+  if (hepaWbnbReserves?.[1] && hepaWbnbReserves?.[0]) {
+    hepaInWbnbPrice = new Fraction(hepaWbnbReserves?.[1], hepaWbnbReserves?.[0]) // JSBI.BigInt(hepaWbnbReserves?.[0].div(hepaWbnbReserves?.[1]) ?? 1)
+  }
   const hepaTokensAmountInPool = new Fraction(
     JSBI.BigInt((pitGovTokenBalance ? pitGovTokenBalance : DEFAULT_AMOUNT).toExact())
   )
