@@ -1,4 +1,4 @@
-import { ChainId, Fraction, WETH } from '@venomswap/sdk'
+import { ChainId, Fraction, JSBI, WETH } from '@venomswap/sdk'
 import { usePancakeFactoryContract, usePancakePair } from './useContract'
 import { useSingleCallResult } from '../state/multicall/hooks'
 import { useActiveWeb3React } from './index'
@@ -14,7 +14,11 @@ export default function useWbnbBusdPrice(): Fraction {
   const wbnbBusdPairContract = usePancakePair(wbnbBusdPairAddress?.result?.[0])
   const wbnbBusdReserves = useSingleCallResult(wbnbBusdPairContract, 'getReserves')?.result
 
-  const wbnbInBusdPrice = new Fraction(wbnbBusdReserves?.[1], wbnbBusdReserves?.[0])
+  let wbnbInBusdPrice = new Fraction(JSBI.BigInt(0), JSBI.BigInt(0))
+
+  if (wbnbBusdReserves?.[1] && wbnbBusdReserves?.[0]) {
+    wbnbInBusdPrice = new Fraction(wbnbBusdReserves?.[1], wbnbBusdReserves?.[0])
+  }
 
   return wbnbInBusdPrice
 }
