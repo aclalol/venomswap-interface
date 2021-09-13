@@ -114,7 +114,7 @@ export default function Pit() {
     'withdrawableRewardOf',
     PIT_STAKING_INTERFACE
   ) // Withdrawable xHEPA
-  const [showSwapModal, setShowSwapModal] = React.useState(false)
+  const [{ showSwapModal, isHepa }, setShowSwapModal] = React.useState({ showSwapModal: false, isHepa: true })
   const [showStakingModal, setShowStakingModal] = useState(false)
   const [showUnstakingModal, setShowUnstakingModal] = useState(false)
   const [showClaimModal, setShowClaimModal] = useState(false)
@@ -137,9 +137,10 @@ export default function Pit() {
         <>
           <SwapModal
             isOpen={showSwapModal}
-            onDismiss={() => setShowSwapModal(false)}
+            onDismiss={() => setShowSwapModal({ isHepa, showSwapModal: false })}
             ratio={govRatio} // Hepa * ratio = xHepa
             hepaToken={govToken}
+            isHepa={isHepa}
             hepaTokenAmount={govTokenBalance}
             xHepaToken={pitToken}
             xHepaTokenAmount={userLiquidityUnstaked}
@@ -208,7 +209,7 @@ export default function Pit() {
                     Your x{govToken?.symbol} Balance
                     {govRatio && (
                       <TYPE.italic display="inline" marginLeft="0.25em">
-                        (1 x{govToken?.symbol} = {govRatio.toSignificant(4)} {govToken?.symbol})
+                        1 HEPA = 0.8 xHEPA
                       </TYPE.italic>
                     )}
                   </TYPE.black>
@@ -247,8 +248,22 @@ export default function Pit() {
 
         {account && (
           <DataRow style={{ marginBottom: '0rem' }}>
-            <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={() => setShowSwapModal(true)}>
-              Swap
+            <ButtonPrimary
+              padding="8px"
+              borderRadius="8px"
+              width="160px"
+              onClick={() => setShowSwapModal({ isHepa: true, showSwapModal: true })}
+            >
+              Swap HEPA
+            </ButtonPrimary>
+
+            <ButtonPrimary
+              padding="8px"
+              borderRadius="8px"
+              width="160px"
+              onClick={() => setShowSwapModal({ isHepa: false, showSwapModal: true })}
+            >
+              Swap xHEPA
             </ButtonPrimary>
 
             <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={handleDepositClick}>
@@ -279,6 +294,9 @@ export default function Pit() {
               {pitSettings?.name} does not have any withdrawal fees.
               <br />
               Tokens are also 100% unlocked when they are claimed.
+              <br />
+              <br />
+              There is no fixed conversion rate from xHEPA to HEPA
             </TYPE.main>
           </AutoColumn>
         </BlueCard>

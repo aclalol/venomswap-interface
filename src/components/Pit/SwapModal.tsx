@@ -1,11 +1,10 @@
 import { CurrencyAmount, Fraction, Token, TokenAmount } from '@venomswap/sdk'
-import React, { useCallback, useContext, useState } from 'react'
-import { ArrowDown } from 'react-feather'
-import styled, { ThemeContext } from 'styled-components'
+import React, { useCallback, useState } from 'react'
+import styled from 'styled-components'
 import { ButtonError, ButtonConfirmed } from '../Button'
 import { AutoColumn } from '../Column'
-import { AutoRow, RowBetween } from '../Row'
-import { ArrowWrapper, Wrapper } from '../swap/styleds'
+import { RowBetween } from '../Row'
+import { Wrapper } from '../swap/styleds'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { CloseIcon, TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
@@ -32,12 +31,12 @@ interface SwapModalProps {
   xHepaToken: Token
   xHepaTokenAmount: TokenAmount
   ratio: Fraction // xhepa = ratio * hepa
+  isHepa: boolean
 }
 interface StateInterface {
   token: Token
   max: TokenAmount
   amount: string
-  calcOpposite: (a: Fraction) => string
 }
 
 export default function SwapModal({
@@ -47,66 +46,39 @@ export default function SwapModal({
   hepaTokenAmount,
   xHepaToken,
   xHepaTokenAmount,
-  ratio
+  ratio,
+  isHepa
 }: SwapModalProps) {
-  const theme = useContext(ThemeContext)
-
-  const [[straight, unstraight], setValues] = useState<[StateInterface, StateInterface]>([
-    {
-      token: hepaToken,
-      max: hepaTokenAmount,
-      amount: '',
-      calcOpposite: (a: Fraction) => a.multiply(ratio).toSignificant(6) // xHepa = Hepa * ration
-    },
-    {
-      token: xHepaToken,
-      max: xHepaTokenAmount,
-      amount: '',
-      calcOpposite: (a: Fraction) => a.divide(ratio).toSignificant(6) // Hepa = xHepa / ratio
-    }
-  ])
+  const [straight, setValues] = useState<StateInterface>({
+    token: isHepa ? hepaToken : xHepaToken,
+    max: isHepa ? hepaTokenAmount : xHepaTokenAmount,
+    amount: ''
+  })
+  React.useEffect(() => {
+    setValues({
+      token: isHepa ? hepaToken : xHepaToken,
+      max: isHepa ? hepaTokenAmount : xHepaTokenAmount,
+      amount: ''
+    })
+  }, [isHepa])
   const onUserInput = useCallback(
-    (value: string, valueN?: CurrencyAmount) => {
-      setValues([
-        {
-          ...straight,
-          amount: value
-        },
-        {
-          ...unstraight,
-          amount: unstraight.calcOpposite(valueN ? valueN : new Fraction(value))
-        }
-      ])
+    (value: string) => {
+      setValues({
+        ...straight,
+        amount: value
+      })
     },
-    [straight, unstraight, setValues]
+    [straight, setValues]
   )
-  const onUserOutput = useCallback(
-    (value: string, valueN?: CurrencyAmount) => {
-      setValues([
-        {
-          ...straight,
-          amount: straight.calcOpposite(valueN ? valueN : new Fraction(value))
-        },
-        {
-          ...unstraight,
-          amount: value
-        }
-      ])
-    },
-    [straight, unstraight, setValues]
-  )
-  const swapInputs = useCallback(() => {
-    setValues([unstraight, straight])
-  }, [straight, unstraight, setValues])
   const { parsedAmount: parsedStraigntAmount, error } = useDerivedSwapInfo(
     straight.amount,
     straight.token,
     straight.max
   )
-  const xHepaContract = usePitContract()
+  const swapContract = usePitContract()
   const deadline = useTransactionDeadline()
   const addTransaction = useTransactionAdder()
-  const [approval, approveCallback] = useApproveCallback(parsedStraigntAmount, xHepaContract?.address)
+  const [approval, approveCallback] = useApproveCallback(parsedStraigntAmount, swapContract?.address)
   const [attempting, setAttempting] = useState<boolean>(false)
   const [hash, setHash] = useState<string | undefined>()
   const [failed, setFailed] = useState<boolean>(false)
@@ -117,7 +89,7 @@ export default function SwapModal({
     onDismiss()
   }, [onDismiss])
   async function onAttemptToApprove() {
-    if (!xHepaContract || !deadline) throw new Error('missing dependencies')
+    if (!swapContract || !deadline) throw new Error('missing dependencies')
     const liquidityAmount = straight.amount
     if (!liquidityAmount) throw new Error('missing liquidity amount')
 
@@ -125,17 +97,17 @@ export default function SwapModal({
   }
   const handleSwap = async () => {
     setAttempting(true)
-    if (xHepaContract && parsedStraigntAmount && deadline) {
+    if (swapContract && parsedStraigntAmount && deadline) {
       if (approval === ApprovalState.APPROVED) {
         const formattedAmount = `0x${parsedStraigntAmount.raw.toString(16)}`
-        const method = straight.token.name === 'Hepa' ? xHepaContract.swapHepa : xHepaContract.swapBack
+        const method = straight.token.name === 'Hepa' ? swapContract.swapHepa : swapContract.swapBack
 
         await method(formattedAmount, {
           gasLimit: GAS_LIMIT // TODO calculateGasMargin(estimatedGas)
         })
           .then((response: TransactionResponse) => {
             addTransaction(response, {
-              summary: `Swap ${straight.token?.name} on ${unstraight.token?.name}`
+              summary: `Swap ${isHepa ? 'HEPA' : 'xHEPA'} on ${isHepa ? 'xHEPA' : 'HEPA'}`
             })
             setHash(response.hash)
           })
@@ -156,7 +128,7 @@ export default function SwapModal({
   const maxAmountInput: CurrencyAmount | undefined = maxAmountSpend(straight.max)
   const atMaxAmountInput = Boolean(maxAmountInput && parsedStraigntAmount?.equalTo(maxAmountInput))
   const handleMaxInput = useCallback(() => {
-    maxAmountInput && onUserInput(maxAmountInput.toExact(), maxAmountInput)
+    maxAmountInput && onUserInput(maxAmountInput.toExact())
   }, [maxAmountInput, onUserInput])
 
   return (
@@ -177,32 +149,8 @@ export default function SwapModal({
                 currency={straight.token}
                 onUserInput={onUserInput}
                 onMax={handleMaxInput}
-                otherCurrency={unstraight.token}
+                otherCurrency={isHepa ? xHepaToken : hepaToken}
                 id="swap-currency-input"
-              />
-
-              <AutoColumn justify="space-between">
-                <AutoRow justify={'center'} style={{ padding: '0 1rem' }}>
-                  <ArrowWrapper clickable>
-                    <ArrowDown
-                      size="16"
-                      onClick={() => {
-                        swapInputs()
-                      }}
-                      color={theme.primary1}
-                    />
-                  </ArrowWrapper>
-                </AutoRow>
-              </AutoColumn>
-
-              <CurrencyInputPanelLight
-                value={unstraight.amount}
-                onUserInput={onUserOutput}
-                label={'To'}
-                showMaxButton={false}
-                currency={unstraight.token}
-                otherCurrency={straight.token}
-                id="swap-currency-output"
               />
 
               <RowBetween>
@@ -224,9 +172,7 @@ export default function SwapModal({
               </RowBetween>
               <RowBetween>
                 <TYPE.small>Price</TYPE.small>
-                <TYPE.small>
-                  1 {xHepaToken.symbol} = {ratio?.toSignificant(4)} {hepaToken.symbol}
-                </TYPE.small>
+                <TYPE.small>1 HEPA = 0.8 xHEPA</TYPE.small>
               </RowBetween>
             </AutoColumn>
           </Wrapper>
@@ -236,7 +182,7 @@ export default function SwapModal({
         <LoadingView onDismiss={wrappedOnDismiss}>
           <AutoColumn gap="12px" justify={'center'}>
             <TYPE.largeHeader>
-              {`Swapped ${straight.amount} ${straight.token.symbol} for ${unstraight.amount} ${unstraight.token.symbol} on ${unstraight?.token?.name}`}
+              {`Swapped ${isHepa ? 'xHEPA' : 'HEPA'} on ${isHepa ? 'xHEPA' : 'HEPA'}`}
             </TYPE.largeHeader>
           </AutoColumn>
         </LoadingView>
@@ -246,7 +192,7 @@ export default function SwapModal({
           <AutoColumn gap="12px" justify={'center'}>
             <TYPE.largeHeader>Transaction Submitted</TYPE.largeHeader>
             <TYPE.body textAlign="center" fontSize={20}>
-              {`Swapped ${straight.amount} ${straight.token.symbol} for ${unstraight.amount} ${unstraight.token.symbol} on ${unstraight?.token?.name}`}
+              {`Swapped ${isHepa ? 'xHEPA' : 'HEPA'} on ${isHepa ? 'xHEPA' : 'HEPA'}`}
             </TYPE.body>
           </AutoColumn>
         </SubmittedView>

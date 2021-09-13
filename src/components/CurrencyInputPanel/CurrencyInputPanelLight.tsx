@@ -59,9 +59,9 @@ const InputPanel = styled.div<{ hideInput?: boolean }>`
   z-index: 1;
 `
 
-const Container = styled.div<{ hideInput: boolean }>`
+const Container = styled.div<{ hideInput: boolean; isShowAmount: boolean }>`
   border-radius: ${({ hideInput }) => (hideInput ? '8px' : '20px')};
-  border: 1px solid ${({ theme }) => theme.bg2};
+  border: ${({ isShowAmount, theme }) => (isShowAmount ? `1px solid ${theme.bg2}` : 'none')};
   background-color: ${({ theme }) => theme.bg1};
 `
 
@@ -110,6 +110,7 @@ interface CurrencyInputPanelProps {
   showCommonBases?: boolean
   customBalanceText?: string
   overrideSelectedCurrencyBalance?: CurrencyAmount | null
+  isShowAmount?: boolean
 }
 
 export default function CurrencyInputPanelLight({
@@ -124,7 +125,8 @@ export default function CurrencyInputPanelLight({
   hideInput = false,
   id,
   customBalanceText,
-  overrideSelectedCurrencyBalance = null
+  overrideSelectedCurrencyBalance = null,
+  isShowAmount = true
 }: CurrencyInputPanelProps) {
   const { t } = useTranslation()
   const { account } = useActiveWeb3React()
@@ -136,7 +138,7 @@ export default function CurrencyInputPanelLight({
 
   return (
     <InputPanel id={id}>
-      <Container hideInput={hideInput}>
+      <Container hideInput={hideInput} isShowAmount={isShowAmount}>
         {!hideInput && (
           <LabelRow>
             <RowBetween>
@@ -168,6 +170,7 @@ export default function CurrencyInputPanelLight({
                 onUserInput={val => {
                   onUserInput(val)
                 }}
+                style={{ contentVisibility: isShowAmount ? 'inherit' : 'hidden' }}
               />
               {account && currency && showMaxButton && label !== 'To' && (
                 <StyledBalanceMax onClick={onMax}>MAX</StyledBalanceMax>

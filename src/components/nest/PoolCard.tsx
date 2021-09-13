@@ -96,6 +96,14 @@ export default function PoolCard({
     }
   }, [poolInfo, handleSetPoolType])
   const backgroundColor = useColor(poolInfo?.sToken)
+  let poolInfoApr
+  try {
+    poolInfoApr = poolInfo.apr.greaterThan(JSBI.BigInt(0))
+      ? `${poolInfo.apr.divide(JSBI.BigInt(100)).toSignificant(6, { groupSeparator: ',' })}%`
+      : '--'
+  } catch (e) {
+    poolInfoApr = '--'
+  }
 
   return (
     <Wrapper showBackground={!poolInfo.isLoad && isStaking} bgColor={backgroundColor}>
@@ -144,11 +152,7 @@ export default function PoolCard({
         <Break />
         <RowBetween>
           <TYPE.white>APR</TYPE.white>
-          <TYPE.white>
-            {poolInfo.apr.greaterThan(new Fraction(JSBI.BigInt(0)))
-              ? `${poolInfo.apr.divide(new Fraction(JSBI.BigInt(100))).toSignificant(6, { groupSeparator: ',' })}%`
-              : '--'}
-          </TYPE.white>
+          <TYPE.white>{poolInfoApr}</TYPE.white>
         </RowBetween>
         <RowBetween>
           <TYPE.white>Total deposited</TYPE.white>
