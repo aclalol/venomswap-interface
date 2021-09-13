@@ -74,7 +74,7 @@ export default function Manage() {
   const params = useParams<{ address: string }>()
   const poolInfo = useSingleNestPool(params?.address ?? undefined)
   const latestBlockNumber = useBlockNumber()
-  const isActive = Number(poolInfo.lastRewardBlock.toString()) >= Number(latestBlockNumber ?? 0)
+  const isActive = Number(poolInfo.bonusEndBlock.toString()) >= Number(latestBlockNumber ?? 0)
   const isDeposited = isActive && Boolean(poolInfo.sFreeAmount.greaterThan(JSBI.BigInt(0)))
   const isClaimable = Boolean(poolInfo.rUnclaimedAmount.greaterThan(JSBI.BigInt(0)))
   const isWithdrawable = Boolean(poolInfo.sAmount.greaterThan(JSBI.BigInt(0)))
@@ -109,9 +109,9 @@ export default function Manage() {
         </PoolData>
         <PoolData>
           <AutoColumn gap="sm">
-            <TYPE.body style={{ margin: 0 }}>Last Reward Block</TYPE.body>
+            <TYPE.body style={{ margin: 0 }}>Bonus End Block</TYPE.body>
             <TYPE.body fontSize={24} fontWeight={500}>
-              {poolInfo?.lastRewardBlock.toString()} blocks
+              {poolInfo?.bonusEndBlock.toString()} block
             </TYPE.body>
           </AutoColumn>
         </PoolData>
