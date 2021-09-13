@@ -37,7 +37,8 @@ const StatContainer = styled.div`
 `};
 `
 
-const Wrapper = styled(AutoColumn)<{ showBackground?: boolean; bgColor?: any }>`
+const Wrapper = styled(AutoColumn)<{ showBackground?: boolean; bgColor?: any; isShow: boolean }>`
+  ${({ isShow }) => (isShow ? 'display: none;' : '')}
   border-radius: 12px;
   width: 100%;
   overflow: hidden;
@@ -70,19 +71,21 @@ export default function PoolCard({
   handleSetPoolType,
   handleSetPoolTvl,
   pool,
-  tvls
+  tvls,
+  isShow
 }: {
   address: string
   handleSetPoolType: (addr: string, isActive: boolean, pool: PoolInterface) => void
   handleSetPoolTvl: (addr: string, tvl: Fraction) => void
   pool: PoolInterface | undefined
   tvls: any
+  isShow: boolean
 }) {
   const poolInfo = useSingleNestPool(address, pool)
   const latestBlockNumber = useBlockNumber()
   const { isActive, isStaking } = React.useMemo(
     () => ({
-      isActive: Number(poolInfo.lastRewardBlock.toString()) >= Number(latestBlockNumber ?? 0),
+      isActive: Number(poolInfo.bonusEndBlock.toString()) >= Number(latestBlockNumber ?? 0),
       isStaking: Boolean(poolInfo.sAmount.greaterThan(JSBI.BigInt(0)))
     }),
     [poolInfo, latestBlockNumber]
@@ -91,10 +94,10 @@ export default function PoolCard({
     if (poolInfo.isLoad && !pool) {
       handleSetPoolType(poolInfo.poolAddress, isActive, poolInfo)
     }
-    if (poolInfo.isLoadTvl && pool && !tvls[pool.poolAddress]) {
+    if (poolInfo.isLoadTvl && !tvls[poolInfo.poolAddress]) {
       handleSetPoolTvl(poolInfo.poolAddress, poolInfo.tvl)
     }
-  }, [poolInfo, handleSetPoolType])
+  }, [poolInfo, pool, handleSetPoolType])
   const backgroundColor = useColor(poolInfo?.sToken)
   let poolInfoApr
   try {
@@ -106,7 +109,7 @@ export default function PoolCard({
   }
 
   return (
-    <Wrapper showBackground={!poolInfo.isLoad && isStaking} bgColor={backgroundColor}>
+    <Wrapper showBackground={!poolInfo.isLoad && isStaking} bgColor={backgroundColor} isShow={isShow}>
       {!poolInfo.isLoad && (
         <>
           <LoaderWrapper />
@@ -140,8 +143,8 @@ export default function PoolCard({
 
       <StatContainer>
         <RowBetween>
-          <TYPE.white>Rewards end in</TYPE.white>
-          <TYPE.white>{poolInfo.lastRewardBlock.toString()} blocks</TYPE.white>
+          <TYPE.white>Bonus end block</TYPE.white>
+          <TYPE.white>{poolInfo.bonusEndBlock.toString()} block</TYPE.white>
         </RowBetween>
         <RowBetween>
           <TYPE.white>Reward per block</TYPE.white>

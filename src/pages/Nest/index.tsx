@@ -147,10 +147,11 @@ export default function Nest() {
         <PoolSection>
           {account ? (
             <>
-              {shownArr.length !== 0 ? (
+              {poolsAddrs.length !== 0 ? (
                 <>
-                  {shownArr.map((addr: string) => (
+                  {poolsAddrs.map((addr: string) => (
                     <PoolCard
+                      isShow={shownArr.indexOf(addr) === -1}
                       key={addr}
                       tvls={tvls}
                       address={addr}
