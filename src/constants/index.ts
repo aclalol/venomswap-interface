@@ -89,7 +89,7 @@ export const MASTER_BREEDER: { [chainId in ChainId]: string } = {
   [ChainId.HARMONY_TESTNET]: '0xd3260Bdec435b0E4388622DE6d16d7ef3Fcd1F9f'
 }
 
-export const MASTER_NEST_BIRTHDAY = 12109500 // BSC_TESTNET
+export const MASTER_NEST_BIRTHDAY = 12390000 // BSC_TESTNET
 export const MASTER_NEST: { [chainId in ChainId]: string } = {
   [ChainId.MAINNET]: ZERO_ONE_ADDRESS,
   [ChainId.RINKEBY]: ZERO_ONE_ADDRESS,
@@ -97,7 +97,7 @@ export const MASTER_NEST: { [chainId in ChainId]: string } = {
   [ChainId.GÖRLI]: ZERO_ONE_ADDRESS,
   [ChainId.KOVAN]: ZERO_ONE_ADDRESS,
   [ChainId.BSC_MAINNET]: ZERO_ONE_ADDRESS,
-  [ChainId.BSC_TESTNET]: '0x018B65f7777ACdDabA08e8542fDc0C2dD11045C6',
+  [ChainId.BSC_TESTNET]: '0x5A77299F18BFdcE612D4a284DD55C99cc4B1C12D',
   [ChainId.HARMONY_MAINNET]: ZERO_ONE_ADDRESS,
   [ChainId.HARMONY_TESTNET]: ZERO_ONE_ADDRESS
 }

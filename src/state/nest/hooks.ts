@@ -128,9 +128,9 @@ export function useNestPoolsAddrsList(): Array<string> {
       }
       const events = await Promise.all(promises)
       const addrs =
-        events.reduce((acc: any, i: any) => {
-          if (i.length !== 0) {
-            i.forEach((event: any) => {
+        events?.reduce((acc: any, i: any) => {
+          if (i?.length !== 0) {
+            i?.forEach((event: any) => {
               acc.push(event.args[0])
             })
           }
