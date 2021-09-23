@@ -17,7 +17,7 @@ import { usePitStakingContract } from '../../hooks/useContract'
 //import { calculateGasMargin } from '../../utils'
 import { PIT_SETTINGS } from '../../constants'
 import useGovernanceToken from '../../hooks/useGovernanceToken'
-import usePitToken from '../../hooks/usePitToken'
+import usePitXHepaToken from '../../hooks/usePitXHepaToken'
 import { GAS_LIMIT } from '../../constants/pit'
 
 const ContentWrapper = styled(AutoColumn)`
@@ -54,7 +54,7 @@ export default function UnstakingModal({ isOpen, onDismiss, stakingToken, userLi
   const govToken = useGovernanceToken()
   const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined
   const pit = usePitStakingContract() // usePitContract()
-  const pitToken = usePitToken()
+  const pitToken = usePitXHepaToken()
 
   async function onWithdraw() {
     if (pit && userLiquidityStaked) {

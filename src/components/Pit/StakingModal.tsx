@@ -18,7 +18,7 @@ import { useTransactionAdder } from '../../state/transactions/hooks'
 import { LoadingView, SubmittedView } from '../ModalViews'
 import { usePitStakingContract } from '../../hooks/useContract'
 import { PIT_SETTINGS } from '../../constants'
-import usePitToken from '../../hooks/usePitToken'
+import usePitXHepaToken from '../../hooks/usePitXHepaToken'
 import { GAS_LIMIT } from '../../constants/pit'
 // import { calculateGasMargin } from '../../utils'
 
@@ -41,7 +41,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingToken, userLiqu
   const [typedValue, setTypedValue] = useState('')
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, stakingToken, userLiquidityUnstaked)
 
-  const govToken = usePitToken()
+  const govToken = usePitXHepaToken()
   const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined
 
   // state for pending and submitted txn views

@@ -111,7 +111,7 @@ export default function Nest() {
           <CardSection>
             <AutoColumn gap="md">
               <RowBetween>
-                <TYPE.white fontWeight={600}>HepaNest staking</TYPE.white>
+                <TYPE.white fontWeight={600}>HepaDrome staking</TYPE.white>
               </RowBetween>
               <RowBetween>
                 <TYPE.white fontSize={14}>Deposit tokens to receive rewards</TYPE.white>
@@ -134,7 +134,7 @@ export default function Nest() {
 
       <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
         <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>HepaNest</TYPE.mediumHeader>
+          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>HepaDrome</TYPE.mediumHeader>
           {totalNestTvl && (
             <TYPE.black style={{ marginTop: '0.5rem' }}>
               <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>

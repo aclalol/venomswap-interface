@@ -363,11 +363,11 @@ export default function Header() {
           <StyledNavLink id={`stake-nav-link`} to={'/staking'}>
             Staking
           </StyledNavLink>
-          <StyledNavLink id={`hepa-pit-nav-link`} to={'/hepa/pit'}>
-            HepaPit
+          <StyledNavLink id={`hepa-pit-nav-link`} to={'/forge'}>
+            Forge House
           </StyledNavLink>
           <StyledNavLink id={`hepa-nest-nav-link`} to={'/hepa/nest/active'}>
-            HepaNest
+            HepaDrome
           </StyledNavLink>
         </HeaderLinks>
       </HeaderRow>

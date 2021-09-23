@@ -12,10 +12,10 @@ import {
   GOVERNANCE_ADDRESS,
   MERKLE_DISTRIBUTOR_ADDRESS,
   MASTER_BREEDER,
-  PIT,
+  XHEPA,
   PIT_BREEDER,
   PIT_STAKING,
-  MASTER_NEST,
+  SMART_CHEF_FACTORY,
   PANCAKE_FACTORY
 } from '../constants'
 import { abi as MASTER_BREEDER_ABI } from '../constants/abis/MasterHepa.json'
@@ -141,7 +141,7 @@ export function useGovTokenContract(): Contract | null {
 
 export function usePitContract(withSignerIfPossible?: boolean): Contract | null {
   const { chainId } = useActiveWeb3React()
-  const address = chainId ? PIT[chainId].address : undefined
+  const address = chainId ? XHEPA[chainId].address : undefined
   return useContract(address, PIT_ABI, withSignerIfPossible)
 }
 
@@ -166,9 +166,9 @@ export function useMasterBreederContract(withSignerIfPossible?: boolean): Contra
   return useContract(address, MASTER_BREEDER_ABI, withSignerIfPossible)
 }
 
-export function useMasterNestContract(withSignerIfPossible?: boolean): Contract | null {
+export function useSmartChefFactoryContract(withSignerIfPossible?: boolean): Contract | null {
   const { chainId } = useActiveWeb3React()
-  const address = chainId && MASTER_NEST[chainId]
+  const address = chainId && SMART_CHEF_FACTORY[chainId]
   return useContract(address, MASTER_NEST_ABI, withSignerIfPossible)
 }
 

@@ -3,7 +3,7 @@ import { CurrencyAmount, JSBI, Token, TokenAmount, ChainId, WETH, Fraction } fro
 import { Interface } from '@ethersproject/abi'
 import { useActiveWeb3React } from '../../hooks'
 import { tryParseAmount } from '../swap/hooks'
-import { useMasterNestContract, usePancakeFactoryContract, usePancakePair } from '../../hooks/useContract'
+import { useSmartChefFactoryContract, usePancakeFactoryContract, usePancakePair } from '../../hooks/useContract'
 import { useMultipleContractSingleData, useSingleCallResult } from '../multicall/hooks'
 import { ethers } from 'ethers'
 import NEST_POOL_ABI from '../../constants/abis/nest-pool.json'
@@ -14,11 +14,12 @@ import getBlocksPerYear from '../../utils/getBlocksPerYear'
 import { validNestPoolInfo, validExtraNestPoolInfo } from '../../utils/validNestPoolInfo'
 import { useBlockNumber } from '../application/hooks'
 import useWbnbBusdPrice from '../../hooks/useWbnbBusdPrice'
+import useXHepaHepaPoolAprAndTvl from '../../hooks/useXHepaHepaPoolAprAndTvl'
 
 const POOL_INTERFACE = new Interface(NEST_POOL_ABI)
 const TOKEN_INTERFACE = new Interface(NEST_TOKEN_ABI)
 
-const DEFAULT_BN = JSBI.BigInt(0)
+export const DEFAULT_BN = JSBI.BigInt(0)
 const DEFAULT_TOKEN = new Token(ChainId.BSC_MAINNET, ZERO_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
 const DEFAULT_TOKEN_A = new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
 export const DEFAULT_AMOUNT = new TokenAmount(DEFAULT_TOKEN, JSBI.BigInt(0))
@@ -100,7 +101,7 @@ export interface PoolInterface {
 }
 
 export function useNestPoolsAddrsList(): Array<string> {
-  const masterNestContract = useMasterNestContract()
+  const smartChefFactoryContract = useSmartChefFactoryContract()
   const [poolsAddrs, setPoolsAddrs] = useState<Array<string>>([])
   const latestBlockNumber = useBlockNumber() ?? 0
 
@@ -116,9 +117,9 @@ export function useNestPoolsAddrsList(): Array<string> {
           bb = latestBlockNumber
         }
 
-        const promis: any = masterNestContract?.queryFilter(
+        const promis: any = smartChefFactoryContract?.queryFilter(
           {
-            address: masterNestContract?.address,
+            address: smartChefFactoryContract?.address,
             topics: [ethers.utils.id('NewSmartChefContract(address)')]
           },
           bb - 5000, // from
@@ -148,6 +149,8 @@ export function useNestPoolsAddrsList(): Array<string> {
 
 export function useApr(poolInfo: PoolInterface) {
   const { chainId } = useActiveWeb3React()
+  const xHepaHepaPoolAprAndTvl = useXHepaHepaPoolAprAndTvl(poolInfo)
+
   const wbnbInBusdPrice = useWbnbBusdPrice()
   const WBNB = WETH[chainId as ChainId]
   const blocksPerYear = React.useMemo(() => {
@@ -167,6 +170,10 @@ export function useApr(poolInfo: PoolInterface) {
   const sBReserves = useSingleCallResult(sBTokenPancakePairContract, 'getReserves')?.result
   const rBTokenPancakePairContract = usePancakePair(rTokenWbnbPairAddress?.result?.[0])
   const rBReserves = useSingleCallResult(rBTokenPancakePairContract, 'getReserves')?.result
+
+  if (poolInfo?.sToken.symbol === 'XHEPA' && poolInfo?.rToken.symbol === 'HEPA') {
+    return xHepaHepaPoolAprAndTvl
+  }
 
   if (sBReserves && rBReserves && sBReserves?.[1].toString() !== '0' && rBReserves?.[1].toString() !== '0') {
     const sPriceInWbnb = new Fraction(sBReserves?.[1], sBReserves?.[0])

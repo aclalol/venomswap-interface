@@ -90,7 +90,7 @@ export default function App() {
               <Route exact strict path="/staking/:currencyIdA/:currencyIdB" component={Manage} />
               <Route exact strict path="/hepa/nest/:type" component={Nest} />
               <Route exact strict path="/hepa/nest/pool/:address" component={NestManage} />
-              <Route exact strict path="/hepa/pit" component={Pit} />
+              <Route exact strict path="/forge" component={Pit} />
               <Route component={RedirectPathToSwapOnly} />
             </Switch>
           </Web3ReactManager>

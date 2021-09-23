@@ -1,5 +1,5 @@
 import { ChainId, Fraction, JSBI, WETH } from '@venomswap/sdk'
-import usePitToken from './usePitToken'
+import usePitXHepaToken from './usePitXHepaToken'
 import { useTokenBalance } from '../state/wallet/hooks'
 import useGovernanceToken from 'hooks/useGovernanceToken'
 import { useTotalSupply } from '../data/TotalSupply'
@@ -14,7 +14,7 @@ export default function usePitTVL(): Fraction | undefined {
   const { chainId } = useActiveWeb3React()
   const pitRatio = usePitRatio()
   const govToken = useGovernanceToken() // HEPA
-  const pit = usePitToken() // xHEPA
+  const pit = usePitXHepaToken() // xHEPA
   const wbnbInBusdPrice = useWbnbBusdPrice()
   const pitTotalSupply = useTotalSupply(pit) // xHEPA
   const pitGovTokenBalance = useTokenBalance(pit?.address, govToken) // HEPA

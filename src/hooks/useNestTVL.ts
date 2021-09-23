@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { TokenAmount, Fraction } from '@venomswap/sdk'
 import { useTokenBalance } from '../state/wallet/hooks'
 import useBUSDPrice from './useBUSDPrice'
-import usePitToken from './usePitToken'
+import usePitXHepaToken from './usePitXHepaToken'
 import { GOVERNANCE_TOKEN_INTERFACE } from '../constants/abis/governanceToken'
 import useGovernanceToken from 'hooks/useGovernanceToken'
 
@@ -11,7 +11,7 @@ export default function useNestTVL(): Fraction | undefined {
 
   const govToken = useGovernanceToken()
   const govTokenBusdPrice = useBUSDPrice(govToken)
-  const pit = usePitToken()
+  const pit = usePitXHepaToken()
   const pitGovTokenBalance: TokenAmount | undefined = useTokenBalance(
     pit && pit.address,
     govToken,

@@ -24,7 +24,7 @@ import usePitRatio from '../../hooks/usePitRatio'
 import { useStakingInfo } from '../../state/stake/hooks'
 import useFilterStakingInfos from '../../hooks/useFilterStakingInfos'
 import CombinedTVL from '../../components/CombinedTVL'
-import usePitToken from '../../hooks/usePitToken'
+import usePitXHepaToken from '../../hooks/usePitXHepaToken'
 import GOVERNANCE_TOKEN_INTERFACE from '../../constants/abis/governanceToken'
 
 const PageWrapper = styled(AutoColumn)`
@@ -85,7 +85,7 @@ export default function Pit() {
   const TVLs = useTotalCombinedTVL(filteredStakingInfos)
 
   const govToken = useGovernanceToken() // HEPA
-  const pitToken = usePitToken() // XHEPA contract address
+  const pitToken = usePitXHepaToken() // XHEPA contract address
   const pitStaking = chainId ? PIT_STAKING[chainId] : undefined // Staking contract address
   const pitSettings = chainId ? PIT_SETTINGS[chainId] : undefined // text: HepaPit
   const govRatio = usePitRatio() // xHEPA/HEPA
