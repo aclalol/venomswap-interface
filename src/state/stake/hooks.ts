@@ -74,7 +74,7 @@ export interface StakingInfo {
 export function useStakingInfo(active: boolean | undefined = undefined, pairToFilterBy?: Pair | null): StakingInfo[] {
   const { chainId, account } = useActiveWeb3React()
   const masterBreederContract = useMasterBreederContract()
-
+  // console.log('masterBreederContract: ', masterBreederContract)
   const masterInfo = useFilterStakingRewardsInfo(chainId, active, pairToFilterBy)
   // console.log('masterInfo: ', masterInfo)
   const tokensWithPrices = useTokensWithWethPrices()

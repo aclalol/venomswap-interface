@@ -13,42 +13,32 @@ export const STAKING_REWARDS_INFO: {
   [ChainId.BSC_MAINNET]: [
     {
       pid: 0,
-      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'WBNB/HEPA'),
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'BHUNT/HEPA'),
       active: true
     },
     {
       pid: 1,
-      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'HEPA/TAPE'),
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'HEPA/WBNB'),
       active: true
     },
     {
       pid: 2,
-      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'HEPA/BANANA'),
-      active: true
-    },
-    {
-      pid: 3,
-      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'HEPA/CAKE'),
-      active: true
-    },
-    {
-      pid: 4,
       tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'HEPA/BUSD'),
       active: true
     },
     {
+      pid: 3,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'CAKE/HEPA'),
+      active: true
+    },
+    {
+      pid: 4,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'HEPA/TAPE'),
+      active: true
+    },
+    {
       pid: 5,
-      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'DAI/BUSD'),
-      active: true
-    },
-    {
-      pid: 6,
-      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'WBNB/BUSD'),
-      active: true
-    },
-    {
-      pid: 7,
-      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'BHUNT/HEPA'),
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'BANANA/HEPA'),
       active: true
     }
   ],
