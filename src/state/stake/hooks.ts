@@ -76,11 +76,14 @@ export function useStakingInfo(active: boolean | undefined = undefined, pairToFi
   const masterBreederContract = useMasterBreederContract()
 
   const masterInfo = useFilterStakingRewardsInfo(chainId, active, pairToFilterBy)
-
+  // console.log('masterInfo: ', masterInfo)
   const tokensWithPrices = useTokensWithWethPrices()
+  // console.log('tokensWithPrices: ', tokensWithPrices)
 
   const weth = tokensWithPrices?.WETH?.token
+  // console.log('weth: ', weth)
   const wethBusdPrice = useBUSDPrice(weth)
+  // console.log('wethBusdPrice: ', wethBusdPrice)
   const govToken = tokensWithPrices?.govToken?.token
   const govTokenWETHPrice = tokensWithPrices?.govToken?.price
 
@@ -101,7 +104,10 @@ export function useStakingInfo(active: boolean | undefined = undefined, pairToFi
     'poolInfo',
     pids.map(pids => [pids])
   )
-
+  // console.log('pidAccountMapping: ', pidAccountMapping)
+  // console.log('pendingRewards: ', pendingRewards)
+  // console.log('userInfos: ', userInfos)
+  // console.log('poolInfos: ', poolInfos)
   const lpTokenAddresses = useMemo(() => {
     return poolInfos.reduce<string[]>((memo, poolInfo) => {
       if (poolInfo && !poolInfo.loading && poolInfo.result) {

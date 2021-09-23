@@ -15,11 +15,6 @@
         },
         {
           "internalType":"uint256",
-          "name":"_mintForDevPercent",
-          "type":"uint256"
-        },
-        {
-          "internalType":"uint256",
           "name":"_rewardPerBlock",
           "type":"uint256"
         },
@@ -61,32 +56,6 @@
       ],
       "stateMutability":"nonpayable",
       "type":"constructor"
-    },
-    {
-      "anonymous":false,
-      "inputs":[
-        {
-          "indexed":true,
-          "internalType":"address",
-          "name":"user",
-          "type":"address"
-        }
-      ],
-      "name":"AuthorizedAdded",
-      "type":"event"
-    },
-    {
-      "anonymous":false,
-      "inputs":[
-        {
-          "indexed":true,
-          "internalType":"address",
-          "name":"user",
-          "type":"address"
-        }
-      ],
-      "name":"AuthorizedRemoved",
-      "type":"event"
     },
     {
       "anonymous":false,
@@ -584,7 +553,7 @@
       "inputs":[
         {
           "internalType":"uint256",
-          "name":"poolId",
+          "name":"pid1",
           "type":"uint256"
         }
       ],
@@ -688,21 +657,6 @@
       "inputs":[
 
       ],
-      "name":"mintForDevPercent",
-      "outputs":[
-        {
-          "internalType":"uint256",
-          "name":"",
-          "type":"uint256"
-        }
-      ],
-      "stateMutability":"view",
-      "type":"function"
-    },
-    {
-      "inputs":[
-
-      ],
       "name":"owner",
       "outputs":[
         {
@@ -752,6 +706,25 @@
           "internalType":"bool",
           "name":"",
           "type":"bool"
+        }
+      ],
+      "stateMutability":"view",
+      "type":"function"
+    },
+    {
+      "inputs":[
+        {
+          "internalType":"address",
+          "name":"",
+          "type":"address"
+        }
+      ],
+      "name":"poolId1",
+      "outputs":[
+        {
+          "internalType":"uint256",
+          "name":"",
+          "type":"uint256"
         }
       ],
       "stateMutability":"view",
@@ -850,6 +823,56 @@
     {
       "inputs":[
         {
+          "internalType":"uint256",
+          "name":"_pid",
+          "type":"uint256"
+        },
+        {
+          "internalType":"address",
+          "name":"_user",
+          "type":"address"
+        },
+        {
+          "internalType":"uint256",
+          "name":"_block",
+          "type":"uint256"
+        }
+      ],
+      "name":"reviseDeposit",
+      "outputs":[
+
+      ],
+      "stateMutability":"nonpayable",
+      "type":"function"
+    },
+    {
+      "inputs":[
+        {
+          "internalType":"uint256",
+          "name":"_pid",
+          "type":"uint256"
+        },
+        {
+          "internalType":"address",
+          "name":"_user",
+          "type":"address"
+        },
+        {
+          "internalType":"uint256",
+          "name":"_block",
+          "type":"uint256"
+        }
+      ],
+      "name":"reviseWithdraw",
+      "outputs":[
+
+      ],
+      "stateMutability":"nonpayable",
+      "type":"function"
+    },
+    {
+      "inputs":[
+        {
           "internalType":"uint256[]",
           "name":"_newMulReward",
           "type":"uint256[]"
@@ -905,12 +928,57 @@
     {
       "inputs":[
         {
-          "internalType":"uint256",
-          "name":"percent",
-          "type":"uint256"
+          "internalType":"uint256[]",
+          "name":"_devFees",
+          "type":"uint256[]"
         }
       ],
-      "name":"setMintForDevPercent",
+      "name":"setDevFeeStage",
+      "outputs":[
+
+      ],
+      "stateMutability":"nonpayable",
+      "type":"function"
+    },
+    {
+      "inputs":[
+        {
+          "internalType":"uint256[]",
+          "name":"_blockEnds",
+          "type":"uint256[]"
+        }
+      ],
+      "name":"setStageEnds",
+      "outputs":[
+
+      ],
+      "stateMutability":"nonpayable",
+      "type":"function"
+    },
+    {
+      "inputs":[
+        {
+          "internalType":"uint256[]",
+          "name":"_blockStarts",
+          "type":"uint256[]"
+        }
+      ],
+      "name":"setStageStarts",
+      "outputs":[
+
+      ],
+      "stateMutability":"nonpayable",
+      "type":"function"
+    },
+    {
+      "inputs":[
+        {
+          "internalType":"uint256[]",
+          "name":"_userFees",
+          "type":"uint256[]"
+        }
+      ],
+      "name":"setUserFeeStage",
       "outputs":[
 
       ],
@@ -925,7 +993,7 @@
           "type":"uint256"
         }
       ],
-      "name":"starBlockUpdate",
+      "name":"starblockUpdate",
       "outputs":[
 
       ],
@@ -1027,7 +1095,7 @@
       "outputs":[
         {
           "internalType":"uint256",
-          "name":"",
+          "name":"globalAmount",
           "type":"uint256"
         }
       ],
@@ -1072,6 +1140,11 @@
         {
           "internalType":"uint256",
           "name":"firstDepositBlock",
+          "type":"uint256"
+        },
+        {
+          "internalType":"uint256",
+          "name":"blockdelta",
           "type":"uint256"
         },
         {
