@@ -1914,11 +1914,11 @@
       "address": "0x8cc1045a63508ef390695521A7a46fdC667799DC",
       "chainId": 56,
       "decimals": 18,
-      "logoURI": "/images/coins/XHEPA.png"
+      "logoURI": "/images/coins/xHEPA.png"
     },
     {
       "name": "Duel Network Token",
-      "symbol": "Duel",
+      "symbol": "DUEL",
       "address": "0x297817CE1a8De777e7ddbed86C3B7f9Dc9349f2c",
       "chainId": 56,
       "decimals": 18,
