@@ -192,7 +192,7 @@ export default function Pit() {
                 </RowBetween>
                 <RowBetween style={{ alignItems: 'baseline' }}>
                   <TYPE.white fontSize={14}>
-                    Stake your {pitToken?.symbol} tokens and earn 1/3rd of the generated trading fees.
+                    Stake your {pitToken?.symbol} tokens and earn 1/3rd of the generated seniorage fees.
                   </TYPE.white>
                 </RowBetween>
                 <br />
