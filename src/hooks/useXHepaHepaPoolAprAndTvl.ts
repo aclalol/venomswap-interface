@@ -44,7 +44,7 @@ export default function useXHepaHepaPoolAprAndTvl(poolInfo: PoolInterface) {
     const apr =
       totalStakingTokenInPool.toString() === '0'
         ? new Fraction(DEFAULT_BN, DEFAULT_BN)
-        : totalRewardPricePerYear.divide(totalStakingTokenInPool).multiply(BigInt(100000))
+        : totalRewardPricePerYear.divide(totalStakingTokenInPool).multiply(BigInt(10000))
 
     const sAll = poolInfo.sAllAmount.multiply(hepaPriceInWbnb).multiply(wbnbInBusdPrice)
     const rAll = poolInfo.rAllAmount.multiply(xhepaPriceInWbnb).multiply(wbnbInBusdPrice)
