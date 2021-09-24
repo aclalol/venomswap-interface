@@ -302,7 +302,7 @@ export default function Manage({
               </span>
               The unclaimed {govToken?.symbol} amount listed above is your total rewards -
               <br />
-              when claiming 95% will be locked and 5% will be immediately accessible.
+              when claiming 100% will be unlocked and will be immediately accessible.
             </TYPE.main>
           )}
         </>
