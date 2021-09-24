@@ -184,6 +184,18 @@ export const PIT_SETTINGS: { [chainId in ChainId]: Record<string, string> } = {
   [ChainId.HARMONY_TESTNET]: { name: 'Forge House', path: '/forge' }
 }
 
+export const NEST_SETTINGS: { [chainId in ChainId]: Record<string, string> } = {
+  [ChainId.MAINNET]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.RINKEBY]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.ROPSTEN]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.GÖRLI]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.KOVAN]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.BSC_MAINNET]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.BSC_TESTNET]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.HARMONY_MAINNET]: { name: 'HepaDrome', path: '/hepa/nest/active' },
+  [ChainId.HARMONY_TESTNET]: { name: 'HepaDrome', path: '/hepa/nest/active' }
+}
+
 export const WEB_INTERFACES: { [chainId in ChainId]: string[] } = {
   [ChainId.MAINNET]: [''],
   [ChainId.RINKEBY]: [''],

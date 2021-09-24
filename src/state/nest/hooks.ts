@@ -16,14 +16,14 @@ import { useBlockNumber } from '../application/hooks'
 import useWbnbBusdPrice from '../../hooks/useWbnbBusdPrice'
 import useXHepaHepaPoolAprAndTvl from '../../hooks/useXHepaHepaPoolAprAndTvl'
 
-const POOL_INTERFACE = new Interface(NEST_POOL_ABI)
-const TOKEN_INTERFACE = new Interface(NEST_TOKEN_ABI)
+export const POOL_INTERFACE = new Interface(NEST_POOL_ABI)
+export const TOKEN_INTERFACE = new Interface(NEST_TOKEN_ABI)
 
 export const DEFAULT_BN = JSBI.BigInt(0)
-const DEFAULT_TOKEN = new Token(ChainId.BSC_MAINNET, ZERO_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
-const DEFAULT_TOKEN_A = new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
+export const DEFAULT_TOKEN = new Token(ChainId.BSC_MAINNET, ZERO_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
+export const DEFAULT_TOKEN_A = new Token(ChainId.BSC_MAINNET, ZERO_ONE_ADDRESS, 18, 'DEFAULT', 'DEFAULT')
 export const DEFAULT_AMOUNT = new TokenAmount(DEFAULT_TOKEN, JSBI.BigInt(0))
-const NEW_DEFAULT_POOL = {
+export const NEW_DEFAULT_POOL = {
   poolAddress: ZERO_ONE_ADDRESS, // pid -> poolAddress
 
   startBlock: DEFAULT_BN, // bn
@@ -137,7 +137,7 @@ export function useNestPoolsAddrsList(): Array<string> {
           }
           return acc
         }, []) ?? []
-      console.log('pool contracts addresses: ', addrs)
+      // console.log('pool contracts addresses: ', addrs)
       setPoolsAddrs(addrs)
     }
 

@@ -11,7 +11,8 @@ import { OutlineCard } from '../../components/Card'
 import { ZERO_ADDRESS } from '../../constants'
 import { useParams } from 'react-router-dom'
 import { useActiveWeb3React } from '../../hooks'
-import { Fraction, JSBI } from '@venomswap/sdk'
+import { Fraction } from '@venomswap/sdk'
+import TotalCombinedTVL from '../../components/TotalCombinedTvl/TotalCombinedTVL'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -85,9 +86,6 @@ export default function Nest() {
           handleSetPoolTvl: _handleSetPoolTvl
         }
   }, [poolsAddrs, isArchived, archivedPools, activePools, setActivePools, tvls, setTvl, setArchivedPools])
-  const totalNestTvl = Object.values(tvls).reduce((totalTvl: any, i: any) => {
-    return totalTvl.add(i)
-  }, new Fraction(JSBI.BigInt(0))) as any
   const assets = React.useMemo(() => {
     const activePoolsCount = Object.keys(activePools).length
     const archivedPoolsCount = Object.keys(archivedPools).length
@@ -135,13 +133,11 @@ export default function Nest() {
       <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
         <DataRow style={{ alignItems: 'baseline' }}>
           <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>HepaDrome</TYPE.mediumHeader>
-          {totalNestTvl && (
-            <TYPE.black style={{ marginTop: '0.5rem' }}>
-              <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                🏆 TVL: ${totalNestTvl.toSignificant(6, { groupSeparator: ',' })}
-              </span>
-            </TYPE.black>
-          )}
+          <TYPE.black style={{ marginTop: '0.5rem' }}>
+            <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
+              <TotalCombinedTVL />
+            </span>
+          </TYPE.black>
         </DataRow>
 
         <PoolSection>

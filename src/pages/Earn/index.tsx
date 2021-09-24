@@ -18,11 +18,10 @@ import ClaimAllRewardsModal from '../../components/earn/ClaimAllRewardsModal'
 import { useActiveWeb3React } from '../../hooks'
 import useGovernanceToken from '../../hooks/useGovernanceToken'
 import useCalculateStakingInfoMembers from '../../hooks/useCalculateStakingInfoMembers'
-import useTotalCombinedTVL from '../../hooks/useTotalCombinedTVL'
 import useBaseStakingRewardsEmission from '../../hooks/useBaseStakingRewardsEmission'
 import { OutlineCard } from '../../components/Card'
 import useFilterStakingInfos from '../../hooks/useFilterStakingInfos'
-import CombinedTVL from '../../components/CombinedTVL'
+import TotalCombinedTVL from '../../components/TotalCombinedTvl/TotalCombinedTVL'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -92,8 +91,6 @@ export default function Earn() {
 
   const stakingInfosWithRewards = useFilterStakingInfos(activeStakingInfos, true, true)
 
-  const TVLs = useTotalCombinedTVL(activeStakingInfos)
-
   return (
     <PageWrapper gap="lg" justify="center">
       <TopSection gap="md">
@@ -148,14 +145,9 @@ export default function Earn() {
       <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
         <DataRow style={{ alignItems: 'baseline' }}>
           <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>Pools</TYPE.mediumHeader>
-          {TVLs?.stakingPoolTVL?.greaterThan('0') && (
-            <TYPE.black style={{ marginTop: '0.5rem' }}>
-              <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                🏆
-              </span>
-              <CombinedTVL />
-            </TYPE.black>
-          )}
+          <TYPE.black style={{ marginTop: '0.5rem' }}>
+            <TotalCombinedTVL />
+          </TYPE.black>
         </DataRow>
 
         <AwaitingRewards />

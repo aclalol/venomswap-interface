@@ -19,13 +19,10 @@ import usePrevious from '../../hooks/usePrevious'
 import { PIT_SETTINGS, PIT_STAKING } from '../../constants'
 import { PIT_INTERFACE, PIT_STAKING_INTERFACE } from '../../constants/abis/pit'
 import useGovernanceToken from 'hooks/useGovernanceToken'
-import useTotalCombinedTVL from '../../hooks/useTotalCombinedTVL'
 import usePitRatio from '../../hooks/usePitRatio'
-import { useStakingInfo } from '../../state/stake/hooks'
-import useFilterStakingInfos from '../../hooks/useFilterStakingInfos'
-import CombinedTVL from '../../components/CombinedTVL'
 import usePitXHepaToken from '../../hooks/usePitXHepaToken'
 import GOVERNANCE_TOKEN_INTERFACE from '../../constants/abis/governanceToken'
+import TotalCombinedTVL from '../../components/TotalCombinedTvl/TotalCombinedTVL'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -79,11 +76,6 @@ flex-direction: column;
 
 export default function Pit() {
   const { account, chainId } = useActiveWeb3React()
-
-  const isActive = true
-  const filteredStakingInfos = useFilterStakingInfos(useStakingInfo(isActive), isActive)
-  const TVLs = useTotalCombinedTVL(filteredStakingInfos)
-
   const govToken = useGovernanceToken() // HEPA
   const pitToken = usePitXHepaToken() // XHEPA contract address
   const pitStaking = chainId ? PIT_STAKING[chainId] : undefined // Staking contract address
@@ -170,14 +162,9 @@ export default function Pit() {
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
           <NonCenteredDataRow style={{ alignItems: 'baseline' }}>
             <TYPE.mediumHeader></TYPE.mediumHeader>
-            {TVLs?.totalPitTVL?.greaterThan('0') && (
-              <TYPE.black>
-                <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                  🏆 TVL: ${TVLs?.totalPitTVL?.toSignificant(6, { groupSeparator: ',' })}
-                </span>
-                <CombinedTVL />
-              </TYPE.black>
-            )}
+            <TYPE.black>
+              <TotalCombinedTVL />
+            </TYPE.black>
           </NonCenteredDataRow>
         </AutoColumn>
 
