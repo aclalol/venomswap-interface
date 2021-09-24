@@ -122,7 +122,9 @@ export default function Pit() {
       toggleWalletModal()
     }
   }, [account, toggleWalletModal])
-
+  // console.log('govTokenBalance: ', govTokenBalance?.toSignificant(6))
+  // console.log('userLiquidityStaked: ', userLiquidityStaked?.toSignificant(6))
+  // console.log('userLiquidityUnstaked: ', userLiquidityUnstaked?.toSignificant(6))
   return (
     <PageWrapper gap="lg" justify="center">
       {govToken && pitToken && govRatio && govTokenBalance && userLiquidityUnstaked && (

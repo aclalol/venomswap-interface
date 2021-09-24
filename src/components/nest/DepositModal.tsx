@@ -34,10 +34,11 @@ export default function DepositModal({ isOpen, onDismiss, poolInfo }: StakingMod
   // max stake with user limit
   const maxStakedAmount = React.useMemo(() => {
     const curLimitPerUser = poolInfo.sLimitPerUser.subtract(poolInfo.sAmount)
-    if (curLimitPerUser.lessThan(poolInfo.sFreeAmount)) {
+    if (poolInfo.sFreeAmount.lessThan(curLimitPerUser)) {
       return curLimitPerUser
+    } else {
+      return curLimitPerUser.subtract(poolInfo.sFreeAmount)
     }
-    return curLimitPerUser.subtract(poolInfo.sFreeAmount)
   }, [poolInfo])
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, poolInfo.sToken, maxStakedAmount)
   // state for pending and submitted txn views
@@ -54,6 +55,7 @@ export default function DepositModal({ isOpen, onDismiss, poolInfo }: StakingMod
     setSignatureData(null)
     setTypedValue(typedValue)
   }, [])
+  //  console.log('maxStakedAmount: ', maxStakedAmount.toSignificant(6))
   const maxAmountInput = maxAmountSpend(maxStakedAmount)
   const atMaxAmount = Boolean(maxAmountInput && parsedAmount?.equalTo(maxAmountInput))
   const handleMax = useCallback(() => {

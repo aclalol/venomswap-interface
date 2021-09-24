@@ -172,6 +172,10 @@ export function useApr(poolInfo: PoolInterface) {
   const rBReserves = useSingleCallResult(rBTokenPancakePairContract, 'getReserves')?.result
 
   if (poolInfo?.sToken.symbol === 'XHEPA' && poolInfo?.rToken.symbol === 'HEPA') {
+    // console.log('xHepaHepaPoolAprAndTvl.apr: ', xHepaHepaPoolAprAndTvl.apr.toSignificant(6))
+    // console.log('xHepaHepaPoolAprAndTvl.tvl: ', xHepaHepaPoolAprAndTvl.tvl.toSignificant(6))
+    // console.log('xHepaHepaPoolAprAndTvl.isLoadTvl: ', xHepaHepaPoolAprAndTvl.isLoadTvl)
+    // console.log('xHepaHepaPoolAprAndTvl.totalDeposits: ', xHepaHepaPoolAprAndTvl.totalDeposits.toSignificant(6))
     return xHepaHepaPoolAprAndTvl
   }
 

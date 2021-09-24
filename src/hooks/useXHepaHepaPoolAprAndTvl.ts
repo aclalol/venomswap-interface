@@ -24,9 +24,12 @@ export default function useXHepaHepaPoolAprAndTvl(poolInfo: PoolInterface) {
     poolInfo.sToken.address,
     WBNB.address
   ])
+  // console.log('hepaTokenWbnbPairAddress?.result?.[0]: ', hepaTokenWbnbPairAddress?.result?.[0])
   const hepaBnbTokenPancakePairContract = usePancakePair(hepaTokenWbnbPairAddress?.result?.[0])
+  // console.log('hepaBnbTokenPancakePairContract: ', hepaBnbTokenPancakePairContract)
   const hepaBnbReserves = useSingleCallResult(hepaBnbTokenPancakePairContract, 'getReserves')?.result
-
+  // console.log('hepaBnbReserves?.[1]: ', hepaBnbReserves?.[1])
+  // console.log('hepaBnbReserves?.[0]: ', hepaBnbReserves?.[0])
   if (hepaBnbReserves && hepaBnbReserves?.[1].toString() !== '0') {
     const hepaPriceInWbnb = new Fraction(hepaBnbReserves?.[1], hepaBnbReserves?.[0])
     const xhepaPriceInWbnb = hepaPriceInWbnb.multiply(pitRatio)

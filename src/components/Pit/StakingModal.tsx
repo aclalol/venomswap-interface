@@ -99,6 +99,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingToken, userLiqu
 
   // used for max input button
   const maxAmountInput = maxAmountSpend(userLiquidityUnstaked)
+  // console.log('maxAmountInput: ', maxAmountInput?.toSignificant(6))
   const atMaxAmount = Boolean(maxAmountInput && parsedAmount?.equalTo(maxAmountInput))
   const handleMax = useCallback(() => {
     maxAmountInput && onUserInput(maxAmountInput.toExact())
