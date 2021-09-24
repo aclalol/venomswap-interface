@@ -3,14 +3,14 @@ import { usePancakeFactoryContract, usePancakePair } from './useContract'
 import { useSingleCallResult } from '../state/multicall/hooks'
 import { useActiveWeb3React } from './index'
 import { DEFAULT_BN, PoolInterface } from '../state/nest/hooks'
-import usePitRatio from './usePitRatio'
+//import usePitRatio from './usePitRatio'
 import useWbnbBusdPrice from './useWbnbBusdPrice'
 import React from 'react'
 import getBlocksPerYear from '../utils/getBlocksPerYear'
 
 export default function useXHepaHepaPoolAprAndTvl(poolInfo: PoolInterface) {
   const { chainId } = useActiveWeb3React()
-  const pitRatio = usePitRatio()
+  //const pitRatio = usePitRatio()
   const wbnbInBusdPrice = useWbnbBusdPrice()
   const WBNB = WETH[chainId as ChainId]
   // console.log('WBNB: ', WBNB.address)
@@ -33,7 +33,7 @@ export default function useXHepaHepaPoolAprAndTvl(poolInfo: PoolInterface) {
   // console.log('hepaBnbReserves?.[0]: ', hepaBnbReserves?.[0])
   if (hepaBnbReserves && hepaBnbReserves?.[1].toString() !== '0') {
     const hepaPriceInWbnb = new Fraction(hepaBnbReserves?.[1], hepaBnbReserves?.[0])
-    const xhepaPriceInWbnb = hepaPriceInWbnb.multiply(pitRatio)
+    const xhepaPriceInWbnb = hepaPriceInWbnb.multiply(BigInt(1))
     const yearProfit = JSBI.multiply(poolInfo._rPerBlock, blocksPerYear)
 
     const totalRewardPricePerYear = wbnbInBusdPrice.multiply(xhepaPriceInWbnb.multiply(new Fraction(yearProfit)))
@@ -44,7 +44,7 @@ export default function useXHepaHepaPoolAprAndTvl(poolInfo: PoolInterface) {
     const apr =
       totalStakingTokenInPool.toString() === '0'
         ? new Fraction(DEFAULT_BN, DEFAULT_BN)
-        : totalRewardPricePerYear.divide(totalStakingTokenInPool)
+        : totalRewardPricePerYear.divide(totalStakingTokenInPool).multiply(BigInt(100000))
 
     const sAll = poolInfo.sAllAmount.multiply(hepaPriceInWbnb).multiply(wbnbInBusdPrice)
     const rAll = poolInfo.rAllAmount.multiply(xhepaPriceInWbnb).multiply(wbnbInBusdPrice)
