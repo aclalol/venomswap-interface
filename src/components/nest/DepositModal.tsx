@@ -34,10 +34,10 @@ export default function DepositModal({ isOpen, onDismiss, poolInfo }: StakingMod
   // max stake with user limit
   const maxStakedAmount = React.useMemo(() => {
     const curLimitPerUser = poolInfo.sLimitPerUser.subtract(poolInfo.sAmount)
-    if (poolInfo.sFreeAmount.lessThan(curLimitPerUser)) {
+    if (poolInfo.sFreeAmount.greaterThan(curLimitPerUser)) {
       return curLimitPerUser
     } else {
-      return curLimitPerUser.subtract(poolInfo.sFreeAmount)
+      return poolInfo.sFreeAmount
     }
   }, [poolInfo])
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, poolInfo.sToken, maxStakedAmount)
