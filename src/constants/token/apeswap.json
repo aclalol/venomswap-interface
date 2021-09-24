@@ -1901,7 +1901,7 @@
       "logoURI": "/images/coins/BANANA.svg"
     },
     {
-      "name": "HEPA ",
+      "name": "HEPA Finance Token",
       "symbol": "HEPA",
       "address": "0x9159F30F1c3F0317b0a2D6bC176f29266Be790eE",
       "chainId": 56,
@@ -1909,7 +1909,7 @@
       "logoURI": "/images/coins/HEPA.svg"
     },
     {
-      "name": "xHEPA",
+      "name": "Hepa Governance Token",
       "symbol": "xHEPA",
       "address": "0x8cc1045a63508ef390695521A7a46fdC667799DC",
       "chainId": 56,
@@ -1917,7 +1917,7 @@
       "logoURI": "/images/coins/XHEPA.png"
     },
     {
-      "name": "Duel Network",
+      "name": "Duel Network Token",
       "symbol": "Duel",
       "address": "0x297817CE1a8De777e7ddbed86C3B7f9Dc9349f2c",
       "chainId": 56,
@@ -1925,7 +1925,7 @@
       "logoURI": "/images/coins/DUEL.png"
     },
     {
-      "name": "ToolApe",
+      "name": "Apetools Token",
       "symbol": "TAPE",
       "address": "0xf63400ee0420ce5b1ebdee0c942d7de1c734a41f",
       "chainId": 56,
