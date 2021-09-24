@@ -30,15 +30,11 @@ export default function usePitTVL(): Fraction | undefined {
   if (hepaWbnbReserves?.[1] && hepaWbnbReserves?.[0]) {
     hepaInWbnbPrice = new Fraction(hepaWbnbReserves?.[1], hepaWbnbReserves?.[0]) // JSBI.BigInt(hepaWbnbReserves?.[0].div(hepaWbnbReserves?.[1]) ?? 1)
   }
-  const hepaTokensAmountInPool = new Fraction(
-    JSBI.BigInt((pitGovTokenBalance ? pitGovTokenBalance : DEFAULT_AMOUNT).toExact())
-  )
-  const xhepaTokensAmountInPool = new Fraction(
-    JSBI.BigInt((pitTotalSupply ? pitTotalSupply : DEFAULT_AMOUNT).toExact())
-  )
+  const hepaTokensAmountInPool = pitGovTokenBalance ? pitGovTokenBalance : DEFAULT_AMOUNT
+  const xhepaTokensAmountInPool = pitTotalSupply ? pitTotalSupply : DEFAULT_AMOUNT
   const xhepaInHepaTokensAmountInPool = pitRatio?.multiply(xhepaTokensAmountInPool) // JSBI.multiply(xhepaTokensAmountInPool,
 
-  const pitTvlHepa = hepaTokensAmountInPool.add(xhepaInHepaTokensAmountInPool)
+  const pitTvlHepa = xhepaInHepaTokensAmountInPool.add(hepaTokensAmountInPool)
   const pitTvlWbnb = pitTvlHepa.multiply(hepaInWbnbPrice)
   const pitTvlBusd = pitTvlWbnb.multiply(wbnbInBusdPrice)
 
