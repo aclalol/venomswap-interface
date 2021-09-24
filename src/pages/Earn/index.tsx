@@ -192,7 +192,7 @@ export default function Earn() {
             <TYPE.small style={{ textAlign: 'center' }} fontSize={10}>
               * = The APR is calculated using a very simplified formula, it might not fully represent the exact APR
               <br />
-              when factoring in the dynamic emission schedule and the locked/unlocked rewards vesting system.
+              when factoring in the dynamic emission schedule.
             </TYPE.small>
           </TYPE.main>
         )}
