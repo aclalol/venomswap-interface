@@ -109,7 +109,7 @@ export default function Menu() {
 
       {open && (
         <MenuFlyout>
-          <MenuItem id="link" href="https://info.apeswap.finance/">
+          <MenuItem id="link" href="https://pancakeswap.finance/info">
             <PieChart size={14} />
             Analytics
           </MenuItem>
