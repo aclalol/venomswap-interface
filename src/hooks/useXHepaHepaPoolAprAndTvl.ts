@@ -13,7 +13,8 @@ export default function useXHepaHepaPoolAprAndTvl(poolInfo: PoolInterface) {
   const pitRatio = usePitRatio()
   const wbnbInBusdPrice = useWbnbBusdPrice()
   const WBNB = WETH[chainId as ChainId]
-
+  // console.log('WBNB: ', WBNB.address)
+  // console.log('poolInfo.sToken.address: ', poolInfo.rToken.address)
   const pancakeFactoryContract = usePancakeFactoryContract()
 
   const blocksPerYear = React.useMemo(() => {
@@ -21,7 +22,7 @@ export default function useXHepaHepaPoolAprAndTvl(poolInfo: PoolInterface) {
     return JSBI.BigInt(bPY)
   }, [chainId])
   const hepaTokenWbnbPairAddress = useSingleCallResult(pancakeFactoryContract, 'getPair', [
-    poolInfo.sToken.address,
+    poolInfo.rToken.address,
     WBNB.address
   ])
   // console.log('hepaTokenWbnbPairAddress?.result?.[0]: ', hepaTokenWbnbPairAddress?.result?.[0])
