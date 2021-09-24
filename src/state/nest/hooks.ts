@@ -3,13 +3,13 @@ import { CurrencyAmount, JSBI, Token, TokenAmount, ChainId, WETH, Fraction } fro
 import { Interface } from '@ethersproject/abi'
 import { useActiveWeb3React } from '../../hooks'
 import { tryParseAmount } from '../swap/hooks'
-import { useSmartChefFactoryContract, usePancakeFactoryContract, usePancakePair } from '../../hooks/useContract'
+import { usePancakeFactoryContract, usePancakePair } from '../../hooks/useContract'
 import { useMultipleContractSingleData, useSingleCallResult } from '../multicall/hooks'
-import { ethers } from 'ethers'
+//import { ethers } from 'ethers'
 import NEST_POOL_ABI from '../../constants/abis/nest-pool.json'
 import NEST_TOKEN_ABI from '../../constants/abis/nest-token.json'
 import usePrevious from '../../hooks/usePrevious'
-import { MASTER_NEST_BIRTHDAY, ZERO_ADDRESS, ZERO_ONE_ADDRESS } from '../../constants'
+import { ZERO_ADDRESS, ZERO_ONE_ADDRESS } from '../../constants'
 import getBlocksPerYear from '../../utils/getBlocksPerYear'
 import { validNestPoolInfo, validExtraNestPoolInfo } from '../../utils/validNestPoolInfo'
 import { useBlockNumber } from '../application/hooks'
@@ -101,16 +101,16 @@ export interface PoolInterface {
 }
 
 export function useNestPoolsAddrsList(): Array<string> {
-  const smartChefFactoryContract = useSmartChefFactoryContract()
+  //const smartChefFactoryContract = useSmartChefFactoryContract()
   const [poolsAddrs, setPoolsAddrs] = useState<Array<string>>([])
   const latestBlockNumber = useBlockNumber() ?? 0
 
   React.useEffect(() => {
     async function getNestList() {
-      const promises = []
-      const birthBlock = MASTER_NEST_BIRTHDAY
-      let bb = birthBlock
-      while (bb >= birthBlock && bb < latestBlockNumber) {
+      //const promises = []
+      //const birthBlock = MASTER_NEST_BIRTHDAY
+      //let bb = birthBlock
+      /*while (bb >= birthBlock && bb < latestBlockNumber) {
         if (bb + 5000 < latestBlockNumber) {
           bb = bb + 5000
         } else {
@@ -127,17 +127,9 @@ export function useNestPoolsAddrsList(): Array<string> {
         )
         promises.push(promis)
       }
-      const events = await Promise.all(promises)
-      const addrs =
-        events?.reduce((acc: any, i: any) => {
-          if (i?.length !== 0) {
-            i?.forEach((event: any) => {
-              acc.push(event.args[0])
-            })
-          }
-          return acc
-        }, []) ?? []
-      // console.log('pool contracts addresses: ', addrs)
+      const events = await Promise.all(promises)*/
+      const addrs = []
+      addrs.push('0x68679d704ea2700beca3f38402886be86150d434')
       setPoolsAddrs(addrs)
     }
 
