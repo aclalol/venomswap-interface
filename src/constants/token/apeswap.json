@@ -1,5 +1,5 @@
 {
-  "name": "apeswap",
+  "name": "Hepa Finance Extended",
   "timestamp": "2021-09-23T07:36:11.494Z",
   "version": {
     "major": 2,
@@ -1914,7 +1914,7 @@
       "address": "0x8cc1045a63508ef390695521A7a46fdC667799DC",
       "chainId": 56,
       "decimals": 18,
-      "logoURI": "/images/coins/xHEPA.png"
+      "logoURI": "/images/coins/XHEPA.png"
     },
     {
       "name": "Duel Network",
