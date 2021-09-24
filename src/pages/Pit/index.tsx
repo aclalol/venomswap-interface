@@ -291,12 +291,12 @@ export default function Pit() {
               after you withdraw your x{govToken?.symbol} tokens from the pool.
               <br />
               <br />
-              {pitSettings?.name} does not have any withdrawal fees.
+              {pitSettings?.name} have time interval (1w/2w/3w/4w) withdrawal fees.
               <br />
               Tokens are also 100% unlocked when they are claimed.
               <br />
               <br />
-              There is no fixed conversion rate from xHEPA to HEPA
+              There is 1:1 conversion rate from xHEPA to HEPA
             </TYPE.main>
           </AutoColumn>
         </BlueCard>
