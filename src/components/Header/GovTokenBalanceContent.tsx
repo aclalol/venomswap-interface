@@ -1,4 +1,4 @@
-import { TokenAmount, Blockchain } from '@venomswap/sdk'
+import { TokenAmount } from '@venomswap/sdk'
 import React from 'react'
 //import React, { useMemo } from 'react'
 import { X } from 'react-feather'
@@ -8,7 +8,7 @@ import { useGovTokenSupply } from '../../data/TotalSupply'
 import { useActiveWeb3React } from '../../hooks'
 //import { useMerkleDistributorContract } from '../../hooks/useContract'
 //import useCurrentBlockTimestamp from '../../hooks/useCurrentBlockTimestamp'
-import { useTotalLockedGovTokensEarned, useTotalUnlockedGovTokensEarned } from '../../state/stake/hooks'
+import { useTotalUnlockedGovTokensEarned } from '../../state/stake/hooks'
 import { useAggregateGovTokenBalance, useTokenBalance } from '../../state/wallet/hooks'
 import { StyledInternalLink, TYPE, UniTokenAnimated } from '../../theme'
 //import { computeUniCirculation } from '../../utils/computeUniCirculation'
@@ -19,7 +19,7 @@ import { Break, CardBGImage, CardNoise, CardSection, DataCard } from '../earn/st
 import useGovernanceToken from '../../hooks/useGovernanceToken'
 import { GOVERNANCE_TOKEN_INTERFACE } from '../../constants/abis/governanceToken'
 import { MouseoverTooltip } from '../Tooltip'
-import useBlockchain from '../../hooks/useBlockchain'
+import useGovTokenBusdPrice from 'hooks/useGovTokenBusdPrice'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -51,7 +51,6 @@ const StyledClose = styled(X)`
 export default function GovTokenBalanceContent({ setShowUniBalanceModal }: { setShowUniBalanceModal: any }) {
   const { account } = useActiveWeb3React()
   const govToken = useGovernanceToken()
-  const blockchain = useBlockchain()
   const total = useAggregateGovTokenBalance()
   const govTokenBalance: TokenAmount | undefined = useTokenBalance(
     account ?? undefined,
@@ -71,20 +70,20 @@ export default function GovTokenBalanceContent({ setShowUniBalanceModal }: { set
     'totalBalanceOf',
     GOVERNANCE_TOKEN_INTERFACE
   )
-  const lockedGovTokensToClaim: TokenAmount | undefined = useTotalLockedGovTokensEarned()
   const unlockedGovTokensToClaim: TokenAmount | undefined = useTotalUnlockedGovTokensEarned()
   const totalSupply: TokenAmount | undefined = useGovTokenSupply()
   const totalUnlockedSupply: TokenAmount | undefined = useGovTokenSupply('unlockedSupply')
   const govTokenPrice = useBUSDPrice(govToken)
-  const circulatingMarketCap = govTokenPrice ? totalUnlockedSupply?.multiply(govTokenPrice.raw) : undefined
-  const totalMarketCap = govTokenPrice ? totalSupply?.multiply(govTokenPrice.raw) : undefined
+  const govTokenPrice1 = useGovTokenBusdPrice()
+  const circulatingMarketCap = govTokenPrice1 ? totalUnlockedSupply?.multiply(govTokenPrice1) : undefined
+  const totalMarketCap = govTokenPrice1 ? totalSupply?.multiply(govTokenPrice1) : undefined
   const tooltips: Record<string, string> = {
     unlockedRewards:
-      'Unlocked pending rewards - 5% of your claimable rewards will be directly accessible upon claiming.',
+      'Unlocked pending rewards - 100% of your claimable rewards will be directly accessible upon claiming.',
     lockedRewards:
       'Locked pending rewards - 95% of your claimable rewards will be locked until 00:00:00 December 25th, 2021 (UTC). They will thereafter gradually unlock until December 25th, 2022.',
     lockedBalance:
-      'Locked balance - Your locked balance will remain locked until 00:00:00 December 25th, 2021 (UTC). Your locked tokens will thereafter gradually unlock until December 25th, 2022.'
+      'Locked balance - Your locked balance will remain locked until 00:00:00 March 25th, 2022 (UTC). Your locked tokens will thereafter gradually unlock until March 25th, 2023.'
   }
 
   return (
@@ -126,35 +125,10 @@ export default function GovTokenBalanceContent({ setShowUniBalanceModal }: { set
                   </TYPE.white>
                 </RowBetween>
                 <RowBetween>
-                  <TYPE.white color="white">
-                    <MouseoverTooltip text={tooltips.unlockedRewards}>
-                      <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                        🔓
-                      </span>
-                      Pending Rewards:
-                    </MouseoverTooltip>
-                  </TYPE.white>
+                  <TYPE.white color="white">Pending Rewards:</TYPE.white>
                   <TYPE.white color="white">
                     {unlockedGovTokensToClaim?.toFixed(2, { groupSeparator: ',' })}{' '}
                     {unlockedGovTokensToClaim && unlockedGovTokensToClaim.greaterThan('0') && (
-                      <StyledInternalLink onClick={() => setShowUniBalanceModal(false)} to="/staking">
-                        (claim)
-                      </StyledInternalLink>
-                    )}
-                  </TYPE.white>
-                </RowBetween>
-                <RowBetween>
-                  <TYPE.white color="white">
-                    <MouseoverTooltip text={tooltips.lockedRewards}>
-                      <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                        🔒
-                      </span>
-                      Pending Rewards:
-                    </MouseoverTooltip>
-                  </TYPE.white>
-                  <TYPE.white color="white">
-                    {lockedGovTokensToClaim?.toFixed(2, { groupSeparator: ',' })}{' '}
-                    {lockedGovTokensToClaim && lockedGovTokensToClaim.greaterThan('0') && (
                       <StyledInternalLink onClick={() => setShowUniBalanceModal(false)} to="/staking">
                         (claim)
                       </StyledInternalLink>
@@ -177,7 +151,7 @@ export default function GovTokenBalanceContent({ setShowUniBalanceModal }: { set
                           ? `USD: $${govTokenLockedBalance
                               .multiply(govTokenPrice?.raw)
                               .toSignificant(6, { groupSeparator: ',' })}`
-                          : ''
+                          : '0 $'
                       }
                     >
                       {govTokenLockedBalance?.toFixed(2, { groupSeparator: ',' })}
@@ -217,14 +191,14 @@ export default function GovTokenBalanceContent({ setShowUniBalanceModal }: { set
             </RowBetween>
           </AutoColumn>
         </CardSection>
-        {blockchain === Blockchain.HARMONY && govTokenPrice && circulatingMarketCap && totalMarketCap && (
+        {govTokenPrice1 && circulatingMarketCap && totalMarketCap && (
           <>
             <Break />
             <CardSection gap="sm">
               <AutoColumn gap="md">
                 <RowBetween>
                   <TYPE.white color="white">{govToken?.symbol} price:</TYPE.white>
-                  <TYPE.white color="white">${govTokenPrice?.toFixed(4) ?? '-'}</TYPE.white>
+                  <TYPE.white color="white">${govTokenPrice1.toFixed(4) ?? '-'}</TYPE.white>
                 </RowBetween>
                 {circulatingMarketCap && (
                   <RowBetween>
