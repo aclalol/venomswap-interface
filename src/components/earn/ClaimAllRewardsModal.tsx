@@ -100,8 +100,7 @@ export default function ClaimAllRewardsModal({ isOpen, onDismiss, stakingInfos }
             </AutoColumn>
           )}
           <TYPE.subHeader style={{ textAlign: 'center' }}>
-            The sum above includes both locked and unlocked {govToken?.symbol} rewards across all the pools you are
-            staking in.
+            {govToken?.symbol} rewards across all the pools you are staking in.
           </TYPE.subHeader>
           <ButtonError disabled={!!error} error={!!error} onClick={onClaimReward}>
             {error ?? 'Claim'}
