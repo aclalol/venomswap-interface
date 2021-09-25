@@ -235,9 +235,9 @@ const StyledNavLink = styled(NavLink).attrs({
   }
 `
 
-/*const StyledExternalLink = styled(ExternalLink).attrs({
+const StyledNavLink1 = styled(NavLink).attrs({
   activeClassName
-})<{ isActive?: boolean }>`
+})`
   ${({ theme }) => theme.flexRowNoWrap}
   align-items: left;
   border-radius: 3rem;
@@ -264,7 +264,7 @@ const StyledNavLink = styled(NavLink).attrs({
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
       display: none;
 `}
-`*/
+`
 
 export const StyledMenuButton = styled.button`
   position: relative;
@@ -357,9 +357,9 @@ export default function Header() {
           </UniIcon>
         </Title>
         <HeaderLinks>
-          <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
+          <StyledNavLink1 id={`swap-nav-link`} to={'/swap'}>
             {t('swap')}
-          </StyledNavLink>
+          </StyledNavLink1>
           <StyledNavLink id={`stake-nav-link`} to={'/staking'}>
             Staking
           </StyledNavLink>
