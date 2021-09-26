@@ -130,7 +130,6 @@ export function useNestPoolsAddrsList(): Array<string> {
       const events = await Promise.all(promises)*/
       const addrs = []
       addrs.push('0x68679d704ea2700beca3f38402886be86150d434')
-      addrs.push('0xa9d15d5ab7b5835e758cb9150e20e65c8d1e6201')
       setPoolsAddrs(addrs)
     }
 
