@@ -6,6 +6,7 @@ import { useActiveWeb3React } from './index'
 import useWbnbBusdPrice from './useWbnbBusdPrice'
 import { GOVERNANCE_TOKEN } from '../constants'
 import { useMemo } from 'react'
+import { DEFAULT_BN } from 'state/nest/hooks'
 
 export default function useGovTokenBusdPrice(): Fraction | undefined {
   const { chainId } = useActiveWeb3React()
@@ -25,9 +26,12 @@ export default function useGovTokenBusdPrice(): Fraction | undefined {
   const hepaBnbReserves = useSingleCallResult(hepaBnbTokenPancakePairContract, 'getReserves')?.result
   // console.log('hepaBnbReserves?.[1]: ', hepaBnbReserves?.[1])
   // console.log('hepaBnbReserves?.[0]: ', hepaBnbReserves?.[0])
-  const hepaPriceInWbnb = new Fraction(hepaBnbReserves?.[1], hepaBnbReserves?.[0])
+  let hepaPriceInWbnb = new Fraction(DEFAULT_BN, DEFAULT_BN)
+  if (hepaBnbReserves && hepaBnbReserves?.[1].toString() !== '0') {
+    hepaPriceInWbnb = new Fraction(hepaBnbReserves?.[1], hepaBnbReserves?.[0])
+  }
   const hepaPriceInBusd = hepaPriceInWbnb.multiply(wbnbInBusdPrice)
   return useMemo(() => {
-    return hepaPriceInBusd ? hepaPriceInBusd : undefined
+    return hepaPriceInBusd ? hepaPriceInBusd : new Fraction(DEFAULT_BN, DEFAULT_BN)
   }, [hepaPriceInBusd])
 }
