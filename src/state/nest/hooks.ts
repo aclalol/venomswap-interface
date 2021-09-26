@@ -130,6 +130,7 @@ export function useNestPoolsAddrsList(): Array<string> {
       const events = await Promise.all(promises)*/
       const addrs = []
       addrs.push('0x68679d704ea2700beca3f38402886be86150d434')
+      addrs.push('0xa9d15d5ab7b5835e758cb9150e20e65c8d1e6201')
       setPoolsAddrs(addrs)
     }
 
@@ -160,9 +161,15 @@ export function useApr(poolInfo: PoolInterface) {
   ])
   const sBTokenPancakePairContract = usePancakePair(sTokenWbnbPairAddress?.result?.[0])
   const sBReserves = useSingleCallResult(sBTokenPancakePairContract, 'getReserves')?.result
+  const sBtoken0 = useSingleCallResult(sBTokenPancakePairContract, 'token0')?.result
   const rBTokenPancakePairContract = usePancakePair(rTokenWbnbPairAddress?.result?.[0])
   const rBReserves = useSingleCallResult(rBTokenPancakePairContract, 'getReserves')?.result
-
+  const rBtoken0 = useSingleCallResult(rBTokenPancakePairContract, 'token0')?.result
+  console.log('Total Staking In Pool', sBtoken0?.[0].toString())
+  console.log('Total Reward Price Per Year', rBtoken0?.[0].toString())
+  console.log('rBReserve', rBReserves?.[0].toString())
+  console.log('sBReserve', sBReserves?.[1].toString())
+  console.log('Wbnb', WBNB.address)
   if (poolInfo?.sToken.symbol === 'XHEPA' && poolInfo?.rToken.symbol === 'HEPA') {
     // console.log('xHepaHepaPoolAprAndTvl.apr: ', xHepaHepaPoolAprAndTvl.apr.toSignificant(6))
     // console.log('xHepaHepaPoolAprAndTvl.tvl: ', xHepaHepaPoolAprAndTvl.tvl.toSignificant(6))
@@ -170,21 +177,32 @@ export function useApr(poolInfo: PoolInterface) {
     // console.log('xHepaHepaPoolAprAndTvl.totalDeposits: ', xHepaHepaPoolAprAndTvl.totalDeposits.toSignificant(6))
     return xHepaHepaPoolAprAndTvl
   }
-
   if (sBReserves && rBReserves && sBReserves?.[1].toString() !== '0' && rBReserves?.[1].toString() !== '0') {
-    const sPriceInWbnb = new Fraction(sBReserves?.[1], sBReserves?.[0])
-    const rPriceInWbnb = new Fraction(rBReserves?.[1], rBReserves?.[0])
+    let sPriceInWbnb = new Fraction(DEFAULT_BN, DEFAULT_BN)
+    let rPriceInWbnb = new Fraction(DEFAULT_BN, DEFAULT_BN)
+    if (sBtoken0?.[0].toString() === WBNB.address) {
+      sPriceInWbnb = new Fraction(sBReserves?.[0], sBReserves?.[1])
+      console.log(sPriceInWbnb)
+    } else if (sBtoken0?.[0].toString() !== WBNB.address) {
+      sPriceInWbnb = new Fraction(sBReserves?.[1], sBReserves?.[0])
+    }
+    if (rBtoken0?.[0].toString() === WBNB.address) {
+      rPriceInWbnb = new Fraction(rBReserves?.[0], rBReserves?.[1])
+    } else if (rBtoken0?.[0].toString() !== WBNB.address) {
+      rPriceInWbnb = new Fraction(rBReserves?.[1], rBReserves?.[0])
+    }
     const yearProfit = JSBI.multiply(poolInfo._rPerBlock, blocksPerYear)
-
+    console.log(yearProfit)
     const totalRewardPricePerYear = wbnbInBusdPrice.multiply(rPriceInWbnb.multiply(new Fraction(yearProfit)))
+    console.log(totalRewardPricePerYear)
     const totalStakingTokenInPool = wbnbInBusdPrice.multiply(
       sPriceInWbnb.multiply(new Fraction(poolInfo._cStakedBalanceOf))
     )
-
+    console.log(totalStakingTokenInPool)
     const apr =
       totalStakingTokenInPool.toString() === '0'
         ? new Fraction(DEFAULT_BN, DEFAULT_BN)
-        : totalRewardPricePerYear.divide(totalStakingTokenInPool)
+        : totalRewardPricePerYear.divide(totalStakingTokenInPool).multiply(BigInt(10000))
 
     const sAll = poolInfo.sAllAmount.multiply(sPriceInWbnb).multiply(wbnbInBusdPrice)
     const rAll = poolInfo.rAllAmount.multiply(rPriceInWbnb).multiply(wbnbInBusdPrice)
@@ -359,7 +377,7 @@ export function useSingleNestPool(address: string, defaultPool?: PoolInterface |
     }
   }, [pool, prevNestPool, tokensSymbols, tokensBalanceOf])
 
-  const { apr, tvl, totalDeposits, isLoadTvl } = useApr(nestPool)
+  const { apr, tvl, totalDeposits, isLoadTvl }: any = useApr(nestPool)
 
   return {
     ...nestPool,
