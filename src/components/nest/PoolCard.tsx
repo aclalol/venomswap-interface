@@ -176,8 +176,7 @@ export default function PoolCard({
             <RowBetween>
               <TYPE.white>Your Rewards</TYPE.white>
               <TYPE.white>
-                {poolInfo.rUnclaimedAmount.toSignificant(6, { groupSeparator: ',' })}
-                {poolInfo.rToken.symbol}
+                {poolInfo.rUnclaimedAmount.toSignificant(6, { groupSeparator: ',' })} {poolInfo.rToken.symbol}
               </TYPE.white>
             </RowBetween>
           </>
