@@ -1931,6 +1931,14 @@
       "chainId": 56,
       "decimals": 18,
       "logoURI": "/images/coins/TAPE.png"
+    },
+    {
+      "name": "USDH Stablecoin",
+      "symbol": "USDH",
+      "address": "0xD56b76d19D8eB5e1dB32494a937C721BAA767E9a",
+      "chainId": 56,
+      "decimals": 18,
+      "logoURI": "/images/coins/USDH.png"
     }
     
   ]
