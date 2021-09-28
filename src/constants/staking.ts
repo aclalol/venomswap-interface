@@ -40,7 +40,27 @@ export const STAKING_REWARDS_INFO: {
       pid: 5,
       tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'BANANA/HEPA'),
       active: true
-    }
+    },
+    {
+      pid: 6,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'USDH/BUSD'),
+      active: true
+    },
+    {
+      pid: 7,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'HEPA/USDH'),
+      active: true
+    },
+    {
+      pid: 8,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'USDH/WBNB'),
+      active: true
+    } /*,
+    {
+      pid: 9,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'USDH/TAPE'),
+      active: true
+    }*/
   ],
   [ChainId.BSC_TESTNET]: [
     {
