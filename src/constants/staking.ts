@@ -55,12 +55,12 @@ export const STAKING_REWARDS_INFO: {
       pid: 8,
       tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'USDH/WBNB'),
       active: true
-    } /*,
+    },
     {
       pid: 9,
       tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'USDH/TAPE'),
       active: true
-    }*/
+    }
   ],
   [ChainId.BSC_TESTNET]: [
     {

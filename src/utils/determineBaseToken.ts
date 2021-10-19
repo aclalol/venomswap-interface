@@ -27,6 +27,11 @@ export default function determineBaseToken(tokenData: Record<string, any>, token
   ) {
     baseToken = tokenData?.USDC?.token
   } else if (
+    tokens[0]?.symbol?.toUpperCase() === tokenData?.USDH?.token?.symbol?.toUpperCase() ||
+    tokens[1]?.symbol?.toUpperCase() === tokenData?.USDH?.token?.symbol?.toUpperCase()
+  ) {
+    baseToken = tokenData?.USDH?.token
+  } else if (
     tokens[0]?.symbol?.toUpperCase() === tokenData?.bscBUSD?.token?.symbol?.toUpperCase() ||
     tokens[1]?.symbol?.toUpperCase() === tokenData?.bscBUSD?.token?.symbol?.toUpperCase()
   ) {

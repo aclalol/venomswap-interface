@@ -164,11 +164,11 @@ export function useApr(poolInfo: PoolInterface) {
   const rBTokenPancakePairContract = usePancakePair(rTokenWbnbPairAddress?.result?.[0])
   const rBReserves = useSingleCallResult(rBTokenPancakePairContract, 'getReserves')?.result
   const rBtoken0 = useSingleCallResult(rBTokenPancakePairContract, 'token0')?.result
-  console.log('Total Staking In Pool', sBtoken0?.[0].toString())
-  console.log('Total Reward Price Per Year', rBtoken0?.[0].toString())
-  console.log('rBReserve', rBReserves?.[0].toString())
-  console.log('sBReserve', sBReserves?.[1].toString())
-  console.log('Wbnb', WBNB.address)
+  // console.log('Total Staking In Pool', sBtoken0?.[0].toString())
+  // console.log('Total Reward Price Per Year', rBtoken0?.[0].toString())
+  // console.log('rBReserve', rBReserves?.[0].toString())
+  // console.log('sBReserve', sBReserves?.[1].toString())
+  // console.log('Wbnb', WBNB.address)
   if (poolInfo?.sToken.symbol === 'XHEPA' && poolInfo?.rToken.symbol === 'HEPA') {
     // console.log('xHepaHepaPoolAprAndTvl.apr: ', xHepaHepaPoolAprAndTvl.apr.toSignificant(6))
     // console.log('xHepaHepaPoolAprAndTvl.tvl: ', xHepaHepaPoolAprAndTvl.tvl.toSignificant(6))

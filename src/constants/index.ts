@@ -148,6 +148,30 @@ export const XHEPA: { [chainId in ChainId]: Token } = {
   [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'xHepa')
 }
 
+export const USDH: { [chainId in ChainId]: Token } = {
+  [ChainId.MAINNET]: new Token(ChainId.MAINNET, ZERO_ONE_ADDRESS, 18, 'USDH', 'USDH'),
+  [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, ZERO_ONE_ADDRESS, 18, 'USDH', 'USDH'),
+  [ChainId.ROPSTEN]: new Token(ChainId.ROPSTEN, ZERO_ONE_ADDRESS, 18, 'USDH', 'USDH'),
+  [ChainId.GÖRLI]: new Token(ChainId.GÖRLI, ZERO_ONE_ADDRESS, 18, 'USDH', 'USDH'),
+  [ChainId.KOVAN]: new Token(ChainId.KOVAN, ZERO_ONE_ADDRESS, 18, 'USDH', 'USDH'),
+  [ChainId.BSC_MAINNET]: new Token(
+    ChainId.BSC_MAINNET,
+    '0xD56b76d19D8eB5e1dB32494a937C721BAA767E9a',
+    18,
+    'USDH',
+    'USDH'
+  ),
+  [ChainId.BSC_TESTNET]: new Token(
+    ChainId.BSC_TESTNET,
+    '0xD56b76d19D8eB5e1dB32494a937C721BAA767E9a',
+    18,
+    'USDH',
+    'USDH'
+  ),
+  [ChainId.HARMONY_MAINNET]: new Token(ChainId.HARMONY_MAINNET, ZERO_ONE_ADDRESS, 18, 'USDH', 'USDH'),
+  [ChainId.HARMONY_TESTNET]: new Token(ChainId.HARMONY_TESTNET, ZERO_ONE_ADDRESS, 18, 'USDH', 'USDH')
+}
+
 export const PIT_STAKING: { [chainId in ChainId]: Token } = {
   [ChainId.MAINNET]: new Token(ChainId.MAINNET, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'xHepa'),
   [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, ZERO_ONE_ADDRESS, 18, 'xHEPA', 'xHepa'),

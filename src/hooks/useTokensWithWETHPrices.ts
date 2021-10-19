@@ -5,6 +5,7 @@ import useTokenWethPrice from './useTokenWETHPrice'
 import useBlockchain from './useBlockchain'
 import getToken from '../utils/getToken'
 import { useActiveWeb3React } from './index'
+import useUsdhToken from './useUsdhToken'
 
 export default function useTokensWithWethPrices(): Record<string, any> {
   const { chainId } = useActiveWeb3React()
@@ -30,12 +31,16 @@ export default function useTokensWithWethPrices(): Record<string, any> {
   const bridgedETH: Token | undefined = Blockchain.HARMONY ? getToken(chainId, '1ETH') : undefined
   const bridgedETHWETHPrice = useTokenWethPrice(bridgedETH)
 
+  const USDH: Token | undefined = useUsdhToken()
+  const USDHWETHPrice = useTokenWethPrice(USDH)
+
   return useMemo(() => {
     return {
       WETH: { token: weth, price: undefined },
       govToken: { token: govToken, price: govTokenWETHPrice },
       BUSD: { token: BUSD, price: BUSDWETHPrice },
       USDC: { token: USDC, price: USDCWETHPrice },
+      USDH: { token: USDH, price: USDHWETHPrice },
       bscBUSD: { token: bscBUSD, price: bscBUSDWETHPrice },
       bridgedETH: { token: bridgedETH, price: bridgedETHWETHPrice }
     }
