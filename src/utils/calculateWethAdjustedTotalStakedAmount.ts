@@ -18,6 +18,10 @@ function pairCurrencyAmountInWeth(
       return tokens?.govToken?.price
         ? valueOfTotalStakedAmountInPairCurrency.multiply(tokens?.govToken?.price)
         : valueOfTotalStakedAmountInPairCurrency
+    case tokens?.USDH?.token?.symbol?.toUpperCase():
+      return tokens?.USDH?.price
+        ? valueOfTotalStakedAmountInPairCurrency.multiply(tokens?.USDH?.price)
+        : valueOfTotalStakedAmountInPairCurrency
     case tokens?.BUSD?.token?.symbol?.toUpperCase():
       return tokens?.BUSD?.price
         ? valueOfTotalStakedAmountInPairCurrency.multiply(tokens?.BUSD?.price)
