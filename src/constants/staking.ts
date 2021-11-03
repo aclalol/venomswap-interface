@@ -67,7 +67,7 @@ export const STAKING_REWARDS_INFO: {
       active: true
     },
     {
-      pid: 10,
+      pid: 11,
       tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'SMG/USDH'),
       active: true
     }
