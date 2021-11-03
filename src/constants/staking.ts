@@ -60,6 +60,16 @@ export const STAKING_REWARDS_INFO: {
       pid: 9,
       tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'USDH/TAPE'),
       active: true
+    },
+    {
+      pid: 10,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'MCRN/USDH'),
+      active: true
+    },
+    {
+      pid: 10,
+      tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'SMG/USDH'),
+      active: true
     }
   ],
   [ChainId.BSC_TESTNET]: [
