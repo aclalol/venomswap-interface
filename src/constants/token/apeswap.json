@@ -1939,6 +1939,22 @@
       "chainId": 56,
       "decimals": 18,
       "logoURI": "/images/coins/USDH.png"
+    },
+    {
+      "name": "MacaronSwap Token",
+      "symbol": "MCRN",
+      "address": "0xacb2d47827C9813AE26De80965845D80935afd0B",
+      "chainId": 56,
+      "decimals": 18,
+      "logoURI": "/images/coins/MCRN.png"
+    },
+    {
+      "name": "Smaugs NFT",
+      "symbol": "SMG",
+      "address": "0x6bfd576220e8444CA4Cc5f89Efbd7f02a4C94C16",
+      "chainId": 56,
+      "decimals": 18,
+      "logoURI": "/images/coins/SMG.png"
     }
     
   ]
