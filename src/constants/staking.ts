@@ -72,7 +72,7 @@ export const STAKING_REWARDS_INFO: {
       active: true
     },
     {
-      pid: 11,
+      pid: 12,
       tokens: getPairTokensWithDefaults(ChainId.BSC_MAINNET, 'USDH/BRY'),
       active: true
     }
